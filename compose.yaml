@@ -1,0 +1,7 @@
+﻿services:
+  foodbridge:
+    image: foodbridge
+    build:
+      context: .
+      dockerfile: Dockerfile
+

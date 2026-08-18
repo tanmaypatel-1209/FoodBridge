@@ -1,0 +1,21 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoodBridge", "FoodBridge.csproj", "{259BD88A-2D4C-4883-8D5E-57E22B0BFABD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{16ECD51C-555A-4C36-A9E4-AA2ABD0C9428}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{259BD88A-2D4C-4883-8D5E-57E22B0BFABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{259BD88A-2D4C-4883-8D5E-57E22B0BFABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{259BD88A-2D4C-4883-8D5E-57E22B0BFABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{259BD88A-2D4C-4883-8D5E-57E22B0BFABD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

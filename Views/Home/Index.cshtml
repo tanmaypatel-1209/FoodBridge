@@ -1,0 +1,150 @@
+@{
+    ViewData["Title"] = "Join FoodBridge";
+}
+
+<section class="signup-page">
+    <div class="signup-orb signup-orb-one"></div>
+    <div class="signup-orb signup-orb-two"></div>
+
+    <div class="signup-shell">
+        <aside class="signup-intro">
+            <a class="brand" href="/" aria-label="FoodBridge home">
+                <span class="brand-mark" aria-hidden="true">♥</span>
+                <span>FoodBridge</span>
+            </a>
+            <div class="intro-copy">
+                <p class="eyebrow">Share more. Waste less.</p>
+                <h1>Good food deserves a good home.</h1>
+                <p>Join a local community that turns extra meals into meaningful connections.</p>
+            </div>
+            <div class="impact-points">
+                <div><span class="impact-icon">✦</span><span>Connect with people nearby</span></div>
+                <div><span class="impact-icon">✦</span><span>Make every meal count</span></div>
+                <div><span class="impact-icon">✦</span><span>Build a kinder food system</span></div>
+            </div>
+            <p class="intro-footer">Small acts of sharing create a big difference.</p>
+        </aside>
+
+        <main class="signup-card">
+            <div class="card-heading">
+                <span class="welcome-badge">Welcome to the community</span>
+                <h2>Create your account</h2>
+                <p>Start sharing and receiving food in your neighbourhood.</p>
+            </div>
+
+            <form id="signupForm" novalidate>
+                <div class="form-group">
+                    <label for="username">Full name</label>
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">◉</span>
+                        <input id="username" name="username" type="text" placeholder="Enter your full name" autocomplete="name" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">✉</span>
+                        <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">I want to</label>
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">⌂</span>
+                        <select id="role" name="role" required>
+                            <option value="" selected disabled>Select how you'll participate</option>
+                            <option value="Donor">Share extra food</option>
+                            <option value="Recipient">Receive food</option>
+                            <option value="Volunteer">Volunteer with FoodBridge</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Create a password</label>
+                    <div class="input-wrap">
+                        <span class="field-icon" aria-hidden="true">⌑</span>
+                        <input id="password" name="password" type="password" placeholder="At least 6 characters" autocomplete="new-password" minlength="6" required />
+                        <button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false">Show</button>
+                    </div>
+                </div>
+
+                <label class="terms-check">
+                    <input id="terms" type="checkbox" required />
+                    <span>I agree to FoodBridge's <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</span>
+                </label>
+
+                <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+                <button id="signupButton" class="signup-button" type="submit">Create my account <span aria-hidden="true">→</span></button>
+            </form>
+
+            <p class="signin-note">Already part of FoodBridge? <a asp-controller="Home" asp-action="Login">Sign in</a></p>
+        </main>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (() => {
+            const form = document.getElementById('signupForm');
+            const button = document.getElementById('signupButton');
+            const message = document.getElementById('formMessage');
+            const password = document.getElementById('password');
+            const toggle = document.querySelector('.password-toggle');
+
+            toggle.addEventListener('click', () => {
+                const isHidden = password.type === 'password';
+                password.type = isHidden ? 'text' : 'password';
+                toggle.textContent = isHidden ? 'Hide' : 'Show';
+                toggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+                toggle.setAttribute('aria-pressed', String(isHidden));
+            });
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                message.textContent = '';
+                message.className = 'form-message';
+
+                if (!form.checkValidity()) {
+                    form.classList.add('was-validated');
+                    message.textContent = 'Please complete all fields before continuing.';
+                    message.classList.add('is-error');
+                    return;
+                }
+
+                button.disabled = true;
+                button.innerHTML = 'Creating your account <span class="button-loader" aria-hidden="true"></span>';
+
+                try {
+                    const response = await fetch('/signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            Username: document.getElementById('username').value.trim(),
+                            EmailID: document.getElementById('email').value.trim(),
+                            password: password.value,
+                            role: document.getElementById('role').value
+                        })
+                    });
+                    const result = await response.text();
+                    if (!response.ok || result.trim().toLowerCase() !== 'success') {
+                        throw new Error(result || 'We could not create your account. Please try again.');
+                    }
+
+                    form.reset();
+                    form.classList.remove('was-validated');
+                    message.textContent = 'Your account is ready — welcome to FoodBridge!';
+                    message.classList.add('is-success');
+                } catch (error) {
+                    message.textContent = error.message || 'Something went wrong. Please try again.';
+                    message.classList.add('is-error');
+                } finally {
+                    button.disabled = false;
+                    button.innerHTML = 'Create my account <span aria-hidden="true">→</span>';
+                }
+            });
+        })();
+    </script>
+}
