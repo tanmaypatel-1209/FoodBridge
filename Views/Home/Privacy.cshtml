@@ -1,6 +1,153 @@
-﻿@{
+@{
     ViewData["Title"] = "Privacy Policy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="dashboard-container privacy-page" id="privacyPage">
+
+    <div class="privacy-hero">
+        <span class="tag-pill">Legal</span>
+        <h1>Privacy Policy</h1>
+        <p class="privacy-hero-sub">Last updated: September 2026 &mdash; FoodBridge Platform</p>
+    </div>
+
+    <div class="privacy-content-grid">
+
+        <nav class="privacy-toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+                <li><a href="#section-overview">Overview</a></li>
+                <li><a href="#section-data">Data We Collect</a></li>
+                <li><a href="#section-use">How We Use It</a></li>
+                <li><a href="#section-auth">Authentication &amp; Security</a></li>
+                <li><a href="#section-sharing">Data Sharing</a></li>
+                <li><a href="#section-rights">Your Rights</a></li>
+                <li><a href="#section-contact">Contact</a></li>
+            </ol>
+        </nav>
+
+        <div class="privacy-body">
+
+            <section id="section-overview" class="privacy-section">
+                <h2>1. Overview</h2>
+                <p>
+                    FoodBridge (&ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) is a food-donation coordination
+                    platform connecting food donors with receivers in need. We are committed to protecting the
+                    privacy and security of all users who register on this platform.
+                </p>
+                <p>
+                    This Privacy Policy explains what personal information we collect, how we use it, and the
+                    rights you have regarding your data. By creating an account or using FoodBridge, you agree to
+                    the practices described in this policy.
+                </p>
+            </section>
+
+            <section id="section-data" class="privacy-section">
+                <h2>2. Data We Collect</h2>
+                <p>When you register for FoodBridge, we collect the following information:</p>
+                <ul class="privacy-list">
+                    <li>
+                        <span class="privacy-list-label">Full Name</span>
+                        Used to identify you within the platform and to personalise your dashboard.
+                    </li>
+                    <li>
+                        <span class="privacy-list-label">Email Address</span>
+                        Your primary identifier and the key used to link donations to your account.
+                    </li>
+                    <li>
+                        <span class="privacy-list-label">Password</span>
+                        Stored as a secure bcrypt/ASP.NET Identity hash. We never store plain-text passwords.
+                    </li>
+                    <li>
+                        <span class="privacy-list-label">Role</span>
+                        Whether you are a <em>Donor</em> or a <em>Receiver</em>. This determines which features
+                        you can access.
+                    </li>
+                    <li>
+                        <span class="privacy-list-label">City</span>
+                        Used to localise the food network. Helps match donors and receivers in the same area.
+                    </li>
+                </ul>
+                <p>When you submit a food donation, we also collect:</p>
+                <ul class="privacy-list">
+                    <li><span class="privacy-list-label">Food Name &amp; Items</span> Description of the donated food.</li>
+                    <li><span class="privacy-list-label">Quantity</span> Estimated number of servings.</li>
+                    <li><span class="privacy-list-label">Location Details</span> City, state, and specific pickup address.</li>
+                    <li><span class="privacy-list-label">Donation Date &amp; Time</span> Recorded automatically when a listing is created.</li>
+                    <li><span class="privacy-list-label">Donation Status</span> e.g. &ldquo;pending&rdquo;.</li>
+                </ul>
+            </section>
+
+            <section id="section-use" class="privacy-section">
+                <h2>3. How We Use Your Information</h2>
+                <p>We use the collected data exclusively to operate the FoodBridge platform:</p>
+                <ul class="privacy-list">
+                    <li>To authenticate you and issue a secure session token (JWT).</li>
+                    <li>To display your food donations on your Donor Dashboard.</li>
+                    <li>To display incoming food requests on the Receiver Dashboard.</li>
+                    <li>To associate food listings with the correct donor account via email address.</li>
+                    <li>To personalise your experience (display name, role-based navigation).</li>
+                </ul>
+                <p>We do <strong>not</strong> use your data for advertising, profiling, or third-party marketing purposes.</p>
+            </section>
+
+            <section id="section-auth" class="privacy-section">
+                <h2>4. Authentication &amp; Security</h2>
+                <p>
+                    FoodBridge uses <strong>JSON Web Tokens (JWT)</strong> for session management. Tokens are signed
+                    with a secret key and include an expiry time. Your token is stored locally in your browser and
+                    sent with each API request via the <code>Authorization: Bearer</code> header.
+                </p>
+                <p>
+                    Passwords are hashed using ASP.NET Core Identity's <code>PasswordHasher</code> before storage.
+                    We do not have access to your plain-text password at any time.
+                </p>
+                <p>
+                    All data is transmitted over HTTPS in production environments.
+                </p>
+            </section>
+
+            <section id="section-sharing" class="privacy-section">
+                <h2>5. Data Sharing</h2>
+                <p>
+                    We do not sell, trade, or rent your personal information to third parties.
+                    Food donation details (food name, quantity, location, items) are visible to
+                    authenticated users of the platform for the purposes of coordinating food distribution.
+                    Your email address is not displayed publicly.
+                </p>
+            </section>
+
+            <section id="section-rights" class="privacy-section">
+                <h2>6. Your Rights</h2>
+                <p>As a FoodBridge user, you have the right to:</p>
+                <ul class="privacy-list">
+                    <li>Know what personal data we hold about you.</li>
+                    <li>Request correction of inaccurate data.</li>
+                    <li>Request deletion of your account and associated data.</li>
+                    <li>Withdraw consent at any time by ceasing use of the platform.</li>
+                </ul>
+                <p>
+                    To exercise any of these rights, please contact us using the details in Section 7.
+                </p>
+            </section>
+
+            <section id="section-contact" class="privacy-section">
+                <h2>7. Contact</h2>
+                <p>
+                    If you have questions about this Privacy Policy or how your data is handled,
+                    please contact the FoodBridge platform administrator.
+                </p>
+                <div class="privacy-contact-card">
+                    <span class="privacy-contact-icon" aria-hidden="true">&#9993;</span>
+                    <div>
+                        <strong>FoodBridge Platform</strong><br />
+                        <span class="text-muted" style="font-size:13px;">
+                            For data requests or privacy concerns, reach out via the platform.
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</div>

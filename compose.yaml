@@ -1,7 +1,22 @@
-﻿services:
-  foodbridge:
-    image: foodbridge
-    build:
-      context: .
-      dockerfile: Dockerfile
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: foodbridge-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "Tanmay@1907"
+      MYSQL_DATABASE: foodbridgedb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
 
+  api:
+    build: .
+    container_name: foodbridge-api
+    ports:
+      - "5000:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:

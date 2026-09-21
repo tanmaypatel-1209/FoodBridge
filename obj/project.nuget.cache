@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "5i6nwytIPXc=",
+  "dgSpecHash": "P6ayj+L1ssg=",
   "success": true,
-  "projectFilePath": "C:\\Users\\tanma\\RiderProjects\\FoodBridge\\FoodBridge.csproj",
+  "projectFilePath": "D:\\.NET\\FoodBridge\\FoodBridge.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\tanma\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\tanma\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\9.0.9\\microsoft.aspnetcore.authentication.jwtbearer.9.0.9.nupkg.sha512",

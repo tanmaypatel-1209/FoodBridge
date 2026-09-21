@@ -1,10 +1,10 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using FoodBridge.DTOs;
-using Microsoft.IdentityModel.Tokens;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Security.Claims;
+    using System.Text;
+    using FoodBridge.DTOs;
+    using Microsoft.IdentityModel.Tokens;
 
-namespace FoodBridge.services;
+    namespace FoodBridge.services;
 
 public class JWTCreate
 {

@@ -1,4 +1,4 @@
-﻿using FoodBridge.DATA;
+using FoodBridge.DATA;
 using FoodBridge.DTOs;
 using FoodBridge.Models;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +14,7 @@ public class signUP:ControllerBase
     {
         this.context = context;
     }
+    
     [HttpPost]
     public async Task<string> SignUp([FromBody] UserDTO userDto)
     {
@@ -24,7 +25,7 @@ public class signUP:ControllerBase
         }
 
         string passHash = new PasswordHasher<User>().HashPassword(Huser, userDto.password);
-        User user = new User(userDto.Username,userDto.EmailID,passHash,userDto.role);
+        User user = new User(userDto.Username, userDto.EmailID, passHash, userDto.role, userDto.city ?? "");
         context.Users.Add(user);
         await context.SaveChangesAsync();
         return "success";

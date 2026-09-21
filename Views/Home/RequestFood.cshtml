@@ -1,0 +1,292 @@
+@{
+    ViewData["Title"] = "Request Food";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-container" id="requestFoodPage">
+
+    <!-- Page Header -->
+    <div class="donor-hero receiver-hero" style="margin-bottom:32px;">
+        <div class="donor-hero-text">
+            <span class="tag-pill receiver-pill">Receiver Portal</span>
+            <h1>Submit a Food Request</h1>
+            <p>
+                Specify the food requirements for your organisation or shelter.
+                Local donors on the FoodBridge network will be notified to help fulfill your request.
+            </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Home/ReceiverHome" class="btn-secondary-custom" aria-label="Go to Receiver Dashboard">
+                &#9664; Receiver Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Two-column Layout: Form + Helpful Guidelines -->
+    <div class="donor-workspace">
+
+        <!-- Form Card -->
+        <div class="donor-portal-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="card-title mb-0" style="font-size:20px;font-weight:700;">New Food Requirement</h2>
+                <span class="portion-pill rcv-portion-pill">POST /NGOs</span>
+            </div>
+            <p class="card-subtitle">
+                Broadcast your needed food supplies directly to community donors.
+            </p>
+
+            <form id="standaloneRequestFoodForm" novalidate>
+
+                <!-- Receiver Email (auto-filled, readonly) -->
+                <div class="form-group mb-3">
+                    <label for="rfEmailID" style="font-size:13px;font-weight:600;">Receiver Email (from your account)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9993;</span>
+                        <input id="rfEmailID" name="emailID" type="email"
+                               placeholder="your-email@example.com"
+                               readonly style="background:var(--bg-surface);cursor:not-allowed;" />
+                    </div>
+                </div>
+
+                <!-- Quantity Needed -->
+                <div class="form-group mb-3">
+                    <label for="rfQuantity" style="font-size:13px;font-weight:600;">
+                        Quantity Needed (Estimated Servings) <span aria-hidden="true" style="color:var(--orange-primary)">*</span>
+                    </label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9830;</span>
+                        <input id="rfQuantity" name="quntity" type="number"
+                               min="1" placeholder="e.g. 50 servings" required />
+                    </div>
+                </div>
+
+                <!-- Required Date / Time -->
+                <div class="form-group mb-3">
+                    <label for="rfRequestDate" style="font-size:13px;font-weight:600;">Needed By (Date &amp; Time)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#128197;</span>
+                        <input id="rfRequestDate" name="requestDateTime" type="datetime-local" />
+                    </div>
+                </div>
+
+                <!-- Location Row: City & State -->
+                <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group mb-3">
+                        <label for="rfCity" style="font-size:13px;font-weight:600;">City</label>
+                        <div class="input-container">
+                            <span class="input-icon" aria-hidden="true">&#128205;</span>
+                            <input id="rfCity" name="city" type="text" placeholder="e.g. Nadiad" />
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="rfState" style="font-size:13px;font-weight:600;">State</label>
+                        <div class="input-container">
+                            <span class="input-icon" aria-hidden="true">&#127757;</span>
+                            <input id="rfState" name="state" type="text" placeholder="e.g. Gujarat" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drop-off Address -->
+                <div class="form-group mb-3">
+                    <label for="rfPerfectLocation" style="font-size:13px;font-weight:600;">Specific Drop-off / Delivery Address</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9872;</span>
+                        <input id="rfPerfectLocation" name="perfectLocation" type="text"
+                               placeholder="e.g. Hope Orphanage, Station Road, Gate 1" />
+                    </div>
+                </div>
+
+                <!-- Additional Notes / Landmarks -->
+                <div class="form-group mb-3">
+                    <label for="rfLocation" style="font-size:13px;font-weight:600;">Landmark / Special Instructions</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9998;</span>
+                        <input id="rfLocation" name="location" type="text"
+                               placeholder="e.g. Delivery vehicles can park near main office" />
+                    </div>
+                </div>
+
+                <!-- Feedback Message -->
+                <div id="rfMessage" class="form-message mb-3" role="alert" aria-live="polite"></div>
+
+                <!-- Submit Button -->
+                <button id="rfSubmitBtn" class="auth-submit-btn" type="submit">
+                    <span>Broadcast Food Request</span>
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Info / Guidelines Sidebar Card -->
+        <div class="donor-portal-card" style="align-self:flex-start;">
+            <h3 class="card-title" style="font-size:18px;font-weight:700;margin-bottom:8px;">
+                Request Guidelines
+            </h3>
+            <p class="card-subtitle" style="margin-bottom:20px;">
+                How FoodBridge connects your requirements with active donors.
+            </p>
+
+            <div class="guideline-item" style="display:flex;gap:14px;margin-bottom:18px;">
+                <div style="font-size:20px;line-height:1;">&#9989;</div>
+                <div>
+                    <h4 style="font-size:14px;font-weight:600;margin:0 0 4px;">Accurate Portions</h4>
+                    <p style="font-size:13px;color:var(--text-secondary);margin:0;">
+                        Estimate servings as closely as possible to help donors allocate the right food batches.
+                    </p>
+                </div>
+            </div>
+
+            <div class="guideline-item" style="display:flex;gap:14px;margin-bottom:18px;">
+                <div style="font-size:20px;line-height:1;">&#128337;</div>
+                <div>
+                    <h4 style="font-size:14px;font-weight:600;margin:0 0 4px;">Time Sensitivity</h4>
+                    <p style="font-size:13px;color:var(--text-secondary);margin:0;">
+                        Set your &ldquo;Needed By&rdquo; deadline so donors can deliver fresh, hot, or packaged meals on time.
+                    </p>
+                </div>
+            </div>
+
+            <div class="guideline-item" style="display:flex;gap:14px;margin-bottom:18px;">
+                <div style="font-size:20px;line-height:1;">&#128205;</div>
+                <div>
+                    <h4 style="font-size:14px;font-weight:600;margin:0 0 4px;">Clear Drop-off Point</h4>
+                    <p style="font-size:13px;color:var(--text-secondary);margin:0;">
+                        Provide clear gate numbers or landmarks to make delivery seamless for food transporters.
+                    </p>
+                </div>
+            </div>
+
+            <div style="padding-top:16px;border-top:1px solid var(--border-color);margin-top:20px;">
+                <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px;">
+                    Want to view your previously submitted requests?
+                </p>
+                <a href="/Home/ReceiverHome" class="btn-secondary-custom" style="display:inline-block;text-align:center;width:100%;">
+                    View Existing Requests
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    // ── Auth Guard ────────────────────────────────────────────────────────────
+    var token = window.FoodBridge ? window.FoodBridge.getToken() : '';
+    if (!token) {
+        window.location.replace('/Home/Login');
+        return;
+    }
+    if (window.FoodBridge && !window.FoodBridge.isReceiver()) {
+        alert('Access restricted: Only registered Receivers can submit food requests.');
+        window.location.replace('/Home/Index');
+        return;
+    }
+
+    // Auto-fill Receiver Email
+    var email = window.FoodBridge ? window.FoodBridge.getUserEmail() : '';
+    var emailInput = document.getElementById('rfEmailID');
+    if (emailInput && email) {
+        emailInput.value = email;
+    }
+
+    // Default Date/Time to current time + 2 hours
+    var dateInput = document.getElementById('rfRequestDate');
+    if (dateInput) {
+        var defaultDate = new Date(Date.now() + 2 * 60 * 60 * 1000);
+        var isoLocal = new Date(defaultDate.getTime() - defaultDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        dateInput.value = isoLocal;
+    }
+
+    // Form Submission
+    var form      = document.getElementById('standaloneRequestFoodForm');
+    var submitBtn = document.getElementById('rfSubmitBtn');
+    var msgEl     = document.getElementById('rfMessage');
+
+    function showMsg(text, isError) {
+        msgEl.textContent = text;
+        msgEl.className   = 'form-message mb-3 ' + (isError ? 'is-error' : 'is-success');
+    }
+
+    function setSubmitting(loading) {
+        submitBtn.disabled = loading;
+        submitBtn.innerHTML = loading
+            ? 'Broadcasting request… <span class="spinner-dot" aria-hidden="true"></span>'
+            : '<span>Broadcast Food Request</span> <span aria-hidden="true">&rarr;</span>';
+    }
+
+    if (form) {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            msgEl.textContent = '';
+            msgEl.className   = 'form-message mb-3';
+
+            var quntity = parseInt(document.getElementById('rfQuantity').value, 10);
+            var reqDate = document.getElementById('rfRequestDate').value;
+            var city    = document.getElementById('rfCity').value.trim();
+            var state   = document.getElementById('rfState').value.trim();
+            var perfLoc = document.getElementById('rfPerfectLocation').value.trim();
+            var notes   = document.getElementById('rfLocation').value.trim();
+
+            if (isNaN(quntity) || quntity < 1) {
+                showMsg('Please specify a valid quantity of servings needed (minimum 1).', true);
+                return;
+            }
+
+            var composedLocation = notes || [perfLoc, city, state].filter(Boolean).join(', ') || null;
+            var parsedDateTime   = reqDate ? new Date(reqDate).toISOString() : new Date().toISOString();
+
+            setSubmitting(true);
+
+            try {
+                var resp = await window.FoodBridge.authFetch('/NGOs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        quntity:         quntity,
+                        requestDateTime: parsedDateTime,
+                        location:        composedLocation,
+                        city:            city || null,
+                        state:           state || null,
+                        perfectLocation: perfLoc || null
+                    })
+                });
+
+                if (resp.status === 401 || resp.status === 403) {
+                    window.location.replace('/Home/Login');
+                    return;
+                }
+
+                var text = await resp.text();
+
+                if (text === 'Added' || (resp.ok && text.toLowerCase().includes('added'))) {
+                    showMsg('Food request broadcast successfully! Redirecting to dashboard…', false);
+                    form.reset();
+                    if (emailInput && email) emailInput.value = email;
+
+                    setTimeout(function () {
+                        window.location.href = '/Home/ReceiverHome';
+                    }, 1200);
+                } else if (text === 'user not found') {
+                    showMsg('User account not found on the server. Please sign in again.', true);
+                } else if (!resp.ok) {
+                    showMsg('Server error (' + resp.status + '). Please try again.', true);
+                } else {
+                    showMsg(text || 'Unexpected response. Please try again.', true);
+                }
+
+            } catch (err) {
+                showMsg('Network error: ' + (err.message || 'Please check your connection.'), true);
+            } finally {
+                setSubmitting(false);
+            }
+        });
+    }
+})();
+</script>
+}

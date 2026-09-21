@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\tanma\\RiderProjects\\FoodBridge\\FoodBridge.csproj": {}
+    "D:\\.NET\\FoodBridge\\FoodBridge.csproj": {}
   },
   "projects": {
-    "C:\\Users\\tanma\\RiderProjects\\FoodBridge\\FoodBridge.csproj": {
+    "D:\\.NET\\FoodBridge\\FoodBridge.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\tanma\\RiderProjects\\FoodBridge\\FoodBridge.csproj",
+        "projectUniqueName": "D:\\.NET\\FoodBridge\\FoodBridge.csproj",
         "projectName": "FoodBridge",
-        "projectPath": "C:\\Users\\tanma\\RiderProjects\\FoodBridge\\FoodBridge.csproj",
+        "projectPath": "D:\\.NET\\FoodBridge\\FoodBridge.csproj",
         "packagesPath": "C:\\Users\\tanma\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\tanma\\RiderProjects\\FoodBridge\\obj\\",
+        "outputPath": "D:\\.NET\\FoodBridge\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

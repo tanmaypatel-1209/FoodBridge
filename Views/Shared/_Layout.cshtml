@@ -1,50 +1,166 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - FoodBridge</title>
-    <script type="importmap"></script>
+    
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/FoodBridge.styles.css" asp-append-version="true"/>
 </head>
 <body>
-<header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-        <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">FoodBridge</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+    <header class="app-header">
+        <div class="nav-container">
+            <a class="brand" asp-controller="Home" asp-action="Login">
+                <span class="brand-mark" aria-hidden="true">&#10022;</span>
+                <span>FoodBridge<span class="brand-dot">.</span></span>
+            </a>
+
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                    </li>
-                </ul>
+
+            <nav class="nav-menu" id="navMenu">
+                <a class="nav-link donor-nav-item @(ViewData["Title"]?.ToString() == "Donor Dashboard" ? "active" : "")" asp-controller="Home" asp-action="DonerHome" style="display:none;">
+                    Donor Dashboard
+                </a>
+                <a class="nav-link donor-nav-item @(ViewData["Title"]?.ToString() == "Donor Portal" ? "active" : "")" asp-controller="Home" asp-action="DonorPortal" style="display:none;">
+                    Donor Portal
+                </a>
+                <a class="nav-link receiver-nav-item @(ViewData["Title"]?.ToString() == "Receiver Dashboard" ? "active" : "")" asp-controller="Home" asp-action="ReceiverHome" style="display:none;">
+                    Receiver Dashboard
+                </a>
+                <a class="nav-link receiver-nav-item @(ViewData["Title"]?.ToString() == "Request Food" ? "active" : "")" asp-controller="Home" asp-action="RequestFood" style="display:none;">
+                    Request Food
+                </a>
+                <a class="nav-link @(ViewData["Title"]?.ToString() == "Privacy Policy" ? "active" : "")" asp-controller="Home" asp-action="Privacy">
+                    Privacy
+                </a>
+                <div class="nav-actions">
+                    <a class="btn-secondary-custom" asp-controller="Home" asp-action="Login">Sign In</a>
+                    <a class="btn-primary-custom" asp-controller="Home" asp-action="Index">Create Account</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="main-wrapper">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="app-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-col footer-brand-col">
+                    <a class="brand footer-brand" asp-controller="Home" asp-action="Login">
+                        <span class="brand-mark" aria-hidden="true">&#10022;</span>
+                        <span>FoodBridge<span class="brand-dot">.</span></span>
+                    </a>
+                    <p class="footer-tagline">Connecting food donors with local communities. Zero waste, direct impact, powered by technology.</p>
+                </div>
+                <div class="footer-col">
+                    <h6>Navigation</h6>
+                    <ul>
+                        <li><a asp-controller="Home" asp-action="Login">Sign In</a></li>
+                        <li><a asp-controller="Home" asp-action="Index">Create Account</a></li>
+                        <li class="donor-nav-item" style="display:none;"><a asp-controller="Home" asp-action="DonerHome">Donor Dashboard</a></li>
+                        <li class="donor-nav-item" style="display:none;"><a asp-controller="Home" asp-action="DonorPortal">Donor Portal</a></li>
+                        <li class="receiver-nav-item" style="display:none;"><a asp-controller="Home" asp-action="ReceiverHome">Receiver Dashboard</a></li>
+                        <li class="receiver-nav-item" style="display:none;"><a asp-controller="Home" asp-action="RequestFood">Request Food</a></li>
+                        <li><a asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h6>Community Network</h6>
+                    <div class="role-pill-list">
+                        <span class="role-mini-pill">01 &bull; Food Donors</span>
+                        <span class="role-mini-pill">02 &bull; Transporters</span>
+                        <span class="role-mini-pill">03 &bull; Receivers & Shelters</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 FoodBridge Platform. Designed with Black, White & Minimal Orange.</p>
             </div>
         </div>
-    </nav>
-</header>
-<div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
-</div>
+    </footer>
 
-<footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2026 - FoodBridge - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <!-- Global Donor Portal Modal (accessible from navbar or dashboard) -->
+    <div id="globalDonorPortalModal" class="donor-portal-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalPortalTitle">
+        <div class="donor-portal-modal">
+            <button id="closeDonorPortalModalBtn" class="modal-close-btn" type="button" aria-label="Close portal">&times;</button>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 id="modalPortalTitle" class="card-title mb-0" style="font-size:20px; font-weight:700;">Donor Portal</h3>
+                <span class="portion-pill">Instant Sync</span>
+            </div>
+            <p class="card-subtitle mb-4 text-muted" style="font-size:13px;">Broadcast fresh food donations directly to the community network.</p>
+
+            <form id="globalDonationForm" novalidate>
+                <div class="form-group mb-3">
+                    <label for="modalFoodTitle" style="font-size:13px; font-weight:600;">Food Title / Description</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9776;</span>
+                        <input id="modalFoodTitle" name="FoodName" type="text" placeholder="e.g. Fresh Baked Breads & Pastries" required />
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="modalDonorEmail" style="font-size:13px; font-weight:600;">Donor Email</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9993;</span>
+                        <input id="modalDonorEmail" name="emailID" type="email" placeholder="donor@organization.com" required />
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="modalQuantity" style="font-size:13px; font-weight:600;">Quantity (Estimated Servings)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9830;</span>
+                        <input id="modalQuantity" name="quntity" type="number" min="1" placeholder="e.g. 25" required />
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="modalItemsDetail" style="font-size:13px; font-weight:600;">Included Items (Comma separated)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9679;</span>
+                        <input id="modalItemsDetail" type="text" placeholder="e.g. Sourdough, Bagels, Croissants" />
+                    </div>
+                </div>
+
+                <div id="modalFormMessage" class="form-message mb-3" role="status" aria-live="polite"></div>
+
+                <button id="modalSubmitDonationBtn" class="auth-submit-btn w-100" type="submit">
+                    <span>Submit Food Donation</span>
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+            </form>
+        </div>
     </div>
-</footer>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="~/js/site.js" asp-append-version="true"></script>
-@await RenderSectionAsync("Scripts", required: false)
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        const toggle = document.getElementById('navToggle');
+        const menu = document.getElementById('navMenu');
+        if (toggle && menu) {
+            toggle.addEventListener('click', () => {
+                menu.classList.toggle('is-open');
+                toggle.classList.toggle('is-active');
+            });
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

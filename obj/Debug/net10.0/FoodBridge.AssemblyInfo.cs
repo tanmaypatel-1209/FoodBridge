@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FoodBridge")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+61327945e0642cf44442f0e3e9a6e014eb683968")]
 [assembly: System.Reflection.AssemblyProductAttribute("FoodBridge")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FoodBridge")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

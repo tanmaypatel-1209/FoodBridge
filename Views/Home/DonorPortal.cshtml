@@ -1,0 +1,329 @@
+@{
+    ViewData["Title"] = "Donor Portal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-container" id="donorPortalPage">
+
+    <!-- Page Header -->
+    <div class="donor-hero" style="margin-bottom:32px;">
+        <div class="donor-hero-text">
+            <span class="tag-pill">Donor Portal</span>
+            <h1>List a Food Donation</h1>
+            <p>
+                Complete the form below to add a new food donation to the FoodBridge network.
+                Your email is automatically linked from your account.
+            </p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <a href="/Home/DonerHome" class="btn-secondary-custom" aria-label="Go to Donor Dashboard">
+                &#9664; Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Two-column layout: Form + Recent Submissions -->
+    <div class="donor-workspace">
+
+        <!-- Form Card -->
+        <div class="donor-portal-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="card-title mb-0" style="font-size:20px;font-weight:700;">New Donation</h2>
+                <span class="portion-pill">POST /DonerHome</span>
+            </div>
+            <p class="card-subtitle">
+                Broadcast fresh food donations directly to the community network.
+            </p>
+
+            <form id="portalDonationForm" novalidate>
+
+                <!-- Food Name -->
+                <div class="form-group mb-3">
+                    <label for="pFoodName" style="font-size:13px;font-weight:600;">
+                        Food Title / Description <span aria-hidden="true" style="color:var(--orange-primary)">*</span>
+                    </label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9776;</span>
+                        <input id="pFoodName" name="FoodName" type="text"
+                               placeholder="e.g. Fresh Baked Breads &amp; Pastries" required />
+                    </div>
+                </div>
+
+                <!-- Email (auto-filled) -->
+                <div class="form-group mb-3">
+                    <label for="pEmailID" style="font-size:13px;font-weight:600;">Donor Email (from your account)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9993;</span>
+                        <input id="pEmailID" name="emailID" type="email"
+                               placeholder="your-email@example.com"
+                               readonly style="background:var(--bg-surface);cursor:not-allowed;" />
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group mb-3">
+                    <label for="pQuantity" style="font-size:13px;font-weight:600;">
+                        Quantity (Estimated Servings) <span aria-hidden="true" style="color:var(--orange-primary)">*</span>
+                    </label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9830;</span>
+                        <input id="pQuantity" name="quntity" type="number"
+                               min="1" placeholder="e.g. 25" required />
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="form-group mb-3">
+                    <label for="pItems" style="font-size:13px;font-weight:600;">
+                        Included Items <span style="color:var(--text-muted);font-weight:400;">(comma-separated)</span>
+                    </label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9679;</span>
+                        <input id="pItems" name="items" type="text"
+                               placeholder="e.g. Sourdough, Bagels, Croissants" />
+                    </div>
+                </div>
+
+                <!-- City + State -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group mb-3">
+                        <label for="pCity" style="font-size:13px;font-weight:600;">City</label>
+                        <div class="input-container">
+                            <span class="input-icon" aria-hidden="true">&#128205;</span>
+                            <input id="pCity" name="city" type="text" placeholder="e.g. Mumbai" />
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="pState" style="font-size:13px;font-weight:600;">State</label>
+                        <div class="input-container">
+                            <span class="input-icon" aria-hidden="true">&#127757;</span>
+                            <input id="pState" name="state" type="text" placeholder="e.g. Maharashtra" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pickup Address -->
+                <div class="form-group mb-3">
+                    <label for="pPerfectLocation" style="font-size:13px;font-weight:600;">Specific Pickup Address</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9872;</span>
+                        <input id="pPerfectLocation" name="perfectLocation" type="text"
+                               placeholder="e.g. Shop 4, MG Road, Near Railway Station" />
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div id="portalFormMessage" class="form-message mb-3" role="alert" aria-live="polite"></div>
+
+                <!-- Submit -->
+                <button id="portalSubmitBtn" class="auth-submit-btn w-100" type="submit">
+                    <span>Submit Food Donation</span>
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Recent Submissions Panel -->
+        <div class="donor-feed-section">
+            <div class="feed-header">
+                <div>
+                    <h3>Recent Donations</h3>
+                    <p>Your live feed from the server — GET /DonerHome/display</p>
+                </div>
+                <button id="portalRefreshBtn" class="btn-secondary-custom" type="button">&#8635; Refresh</button>
+            </div>
+
+            <div id="portalFeedLoading" style="display:none;padding:32px 0;text-align:center;color:var(--text-muted);">
+                <span class="spinner-dot" style="display:inline-block;width:20px;height:20px;border-color:rgba(0,0,0,.1);border-top-color:var(--orange-primary);" aria-hidden="true"></span>
+                <span style="margin-left:10px;">Loading…</span>
+            </div>
+
+            <div id="portalFeedError" class="form-message is-error" role="alert" aria-live="assertive" style="display:none;padding:12px 0;"></div>
+
+            <div id="portalFoodGrid" class="food-grid">
+                <!-- Cards rendered by JS -->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    // ── Auth Guard ────────────────────────────────────────────────────────────
+    var token = window.FoodBridge ? window.FoodBridge.getToken() : '';
+    if (!token) { window.location.replace('/Home/Login'); return; }
+    if (window.FoodBridge && !window.FoodBridge.isDonor()) {
+        window.location.replace('/Home/Login'); return;
+    }
+
+    // ── Auto-fill email ───────────────────────────────────────────────────────
+    var email = window.FoodBridge ? window.FoodBridge.getUserEmail() : '';
+    var emailInput = document.getElementById('pEmailID');
+    if (emailInput && email) emailInput.value = email;
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function formatDate(dt) {
+        if (!dt) return '';
+        try { return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+        catch(e) { return ''; }
+    }
+
+    function statusColor(s) {
+        s = (s || 'pending').toLowerCase();
+        return s === 'pending'   ? 'var(--orange-primary)' :
+               s === 'completed' ? 'var(--success)' : 'var(--text-muted)';
+    }
+
+    function buildCard(food) {
+        var items = Array.isArray(food.items) ? food.items : [];
+        var tags = items.length
+            ? items.map(function(t){ return '<span class="food-item-tag">' + escHtml(t) + '</span>'; }).join('')
+            : '<span class="food-item-tag" style="color:var(--text-muted);">No items</span>';
+        var loc = [food.perfectLocation, food.city, food.state].filter(Boolean).join(', ');
+        var c = statusColor(food.status);
+
+        return '<article class="food-card">' +
+            '<div class="food-card-top">' +
+                '<h4 class="food-title">' + escHtml(food.foodName || food.FoodName || '—') + '</h4>' +
+                '<span class="portion-pill">&#9830; ' + (food.quntity || 0) + '</span>' +
+            '</div>' +
+            (loc ? '<div class="donor-meta-row"><span>&#128205;</span><span>' + escHtml(loc) + '</span></div>' : '') +
+            '<div class="item-tags-wrap">' + tags + '</div>' +
+            '<div class="food-card-footer">' +
+                '<span class="status-indicator" style="color:' + c + ';">' +
+                    '<span class="status-dot" style="background:' + c + ';"></span>' +
+                    escHtml(food.status || 'pending') +
+                '</span>' +
+                '<span style="color:var(--text-muted);font-size:12px;">' + formatDate(food.donationDateTime) + '</span>' +
+            '</div></article>';
+    }
+
+    // ── Feed Loader — GET /DonerHome/display ──────────────────────────────────
+    var feedLoading = document.getElementById('portalFeedLoading');
+    var feedError   = document.getElementById('portalFeedError');
+    var foodGrid    = document.getElementById('portalFoodGrid');
+
+    async function loadFeed() {
+        feedLoading.style.display = '';
+        feedError.style.display   = 'none';
+        foodGrid.innerHTML        = '';
+
+        try {
+            var resp = await window.FoodBridge.authFetch('/DonerHome/display');
+            if (resp.status === 401 || resp.status === 403) { window.location.replace('/Home/Login'); return; }
+            if (!resp.ok) throw new Error('Server returned ' + resp.status);
+            var data = await resp.json();
+            feedLoading.style.display = 'none';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                foodGrid.innerHTML =
+                    '<div class="empty-state">' +
+                    '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
+                    '<h4>No donations yet</h4>' +
+                    '<p>Submit your first food donation using the form.</p>' +
+                    '</div>';
+                return;
+            }
+            foodGrid.innerHTML = data.map(buildCard).join('');
+        } catch (err) {
+            feedLoading.style.display = 'none';
+            feedError.style.display   = '';
+            feedError.textContent     = 'Could not load donations: ' + (err.message || 'Unknown error.');
+        }
+    }
+
+    document.getElementById('portalRefreshBtn').addEventListener('click', loadFeed);
+
+    // ── Donation Form — POST /DonerHome ───────────────────────────────────────
+    var form      = document.getElementById('portalDonationForm');
+    var submitBtn = document.getElementById('portalSubmitBtn');
+    var msgEl     = document.getElementById('portalFormMessage');
+
+    function showMsg(text, isError) {
+        msgEl.textContent = text;
+        msgEl.className   = 'form-message mb-3 ' + (isError ? 'is-error' : 'is-success');
+    }
+
+    function setLoading(loading) {
+        submitBtn.disabled = loading;
+        submitBtn.innerHTML = loading
+            ? 'Submitting… <span class="spinner-dot" aria-hidden="true"></span>'
+            : '<span>Submit Food Donation</span><span aria-hidden="true">&rarr;</span>';
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        msgEl.textContent = '';
+        msgEl.className   = 'form-message mb-3';
+
+        var foodName        = document.getElementById('pFoodName').value.trim();
+        var emailID         = document.getElementById('pEmailID').value.trim();
+        var quntity         = parseInt(document.getElementById('pQuantity').value, 10);
+        var rawItems        = document.getElementById('pItems').value.trim();
+        var city            = document.getElementById('pCity').value.trim();
+        var state           = document.getElementById('pState').value.trim();
+        var perfectLocation = document.getElementById('pPerfectLocation').value.trim();
+
+        if (!foodName) { showMsg('Please enter a food title.', true); return; }
+        if (!emailID)  { showMsg('Email is missing. Please sign in again.', true); return; }
+        if (isNaN(quntity) || quntity < 1) { showMsg('Please enter a valid quantity.', true); return; }
+
+        var items = rawItems
+            ? rawItems.split(',').map(function(s){ return s.trim(); }).filter(Boolean)
+            : [foodName];
+
+        setLoading(true);
+
+        try {
+            var resp = await window.FoodBridge.authFetch('/DonerHome', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    FoodName:        foodName,
+                    emailID:         emailID,
+                    quntity:         quntity,
+                    items:           items,
+                    city:            city || null,
+                    state:           state || null,
+                    perfectLocation: perfectLocation || null
+                })
+            });
+
+            if (resp.status === 401 || resp.status === 403) { window.location.replace('/Home/Login'); return; }
+
+            var text = await resp.text();
+            if (text === 'Food added' || (resp.ok && text.toLowerCase().includes('food added'))) {
+                showMsg('Donation submitted successfully!', false);
+                form.reset();
+                if (emailInput) emailInput.value = email;
+                loadFeed();
+            } else if (text === 'user not found') {
+                showMsg('Your account could not be found. Please sign in again.', true);
+            } else if (!resp.ok) {
+                showMsg('Server error (' + resp.status + '). Please try again.', true);
+            } else {
+                showMsg(text || 'Unexpected response.', true);
+            }
+        } catch (err) {
+            showMsg('Network error: ' + (err.message || 'Check your connection.'), true);
+        } finally {
+            setLoading(false);
+        }
+    });
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    loadFeed();
+
+})();
+</script>
+}

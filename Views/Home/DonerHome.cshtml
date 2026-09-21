@@ -1,0 +1,403 @@
+@{
+    ViewData["Title"] = "Donor Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-container" id="donerHomePage">
+
+    <!-- Hero / Greeting -->
+    <div class="donor-hero" id="donorHeroSection">
+        <div class="donor-hero-text">
+            <span class="tag-pill">Donor Dashboard</span>
+            <h1 id="donorGreeting">Welcome back, Donor.</h1>
+            <p>Manage your food donations and track their status below.</p>
+        </div>
+        <div class="donor-metrics">
+            <div class="metric-card">
+                <span class="metric-value highlight" id="metricTotal">—</span>
+                <span class="metric-label">Total Listings</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value" id="metricPending">—</span>
+                <span class="metric-label">Pending</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="donor-nav-tabs" role="tablist" aria-label="Donor sections">
+        <button class="tab-btn active" id="tabFeed" role="tab" aria-selected="true" aria-controls="feedPanel">
+            <span class="tab-icon" aria-hidden="true">&#9776;</span> My Donations
+        </button>
+        <button class="tab-btn" id="tabAddFood" role="tab" aria-selected="false" aria-controls="addFoodPanel">
+            <span class="tab-icon" aria-hidden="true">&#43;</span> Add Donation
+        </button>
+    </div>
+
+    <!-- Workspace: Feed Panel -->
+    <div id="feedPanel" role="tabpanel" aria-labelledby="tabFeed">
+        <div class="donor-feed-section">
+            <div class="feed-header">
+                <div>
+                    <h3>Your Food Donations</h3>
+                    <p>All listings are fetched live from the server.</p>
+                </div>
+                <button id="refreshFeedBtn" class="btn-secondary-custom" type="button" aria-label="Refresh donations list">
+                    &#8635; Refresh
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="feedLoading" class="feed-state" aria-live="polite" style="display:none;">
+                <div class="feed-loading-inner">
+                    <span class="spinner-dot" style="display:inline-block;border-color:rgba(0,0,0,.15);border-top-color:var(--orange-primary);width:22px;height:22px;" aria-hidden="true"></span>
+                    <span>Loading your donations…</span>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="feedError" class="feed-state is-error" role="alert" aria-live="assertive" style="display:none;"></div>
+
+            <!-- Food Grid -->
+            <div id="foodGrid" class="food-grid" aria-label="Food donation listings">
+                <!-- Cards rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Workspace: Add Food Panel -->
+    <div id="addFoodPanel" role="tabpanel" aria-labelledby="tabAddFood" style="display:none;">
+        <div class="donor-portal-card" style="max-width:640px;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h3 class="card-title mb-0">List a Food Donation</h3>
+                <span class="portion-pill">POST /DonerHome</span>
+            </div>
+            <p class="card-subtitle">
+                Fill in the details below. Your email is auto-filled from your session.
+            </p>
+
+            <form id="addFoodForm" novalidate>
+
+                <!-- Food Title -->
+                <div class="form-group mb-3">
+                    <label for="dfFoodName">Food Title / Description <span aria-hidden="true" style="color:var(--orange-primary)">*</span></label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9776;</span>
+                        <input id="dfFoodName" name="FoodName" type="text"
+                               placeholder="e.g. Fresh Baked Breads &amp; Pastries" required />
+                    </div>
+                </div>
+
+                <!-- Email (auto-filled, readonly) -->
+                <div class="form-group mb-3">
+                    <label for="dfEmailID">Donor Email (from your account)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9993;</span>
+                        <input id="dfEmailID" name="emailID" type="email"
+                               placeholder="your-email@example.com"
+                               readonly style="background:var(--bg-surface);cursor:not-allowed;" />
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="form-group mb-3">
+                    <label for="dfQuantity">Quantity (Estimated Servings) <span aria-hidden="true" style="color:var(--orange-primary)">*</span></label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9830;</span>
+                        <input id="dfQuantity" name="quntity" type="number"
+                               min="1" placeholder="e.g. 25" required />
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="form-group mb-3">
+                    <label for="dfItems">Included Items <span style="color:var(--text-muted);font-weight:400;">(comma-separated)</span></label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9679;</span>
+                        <input id="dfItems" name="items" type="text"
+                               placeholder="e.g. Sourdough, Bagels, Croissants" />
+                    </div>
+                </div>
+
+                <!-- Location row -->
+                <div class="form-group-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group mb-3">
+                        <label for="dfCity">City</label>
+                        <div class="input-container">
+                            <span class="input-icon" aria-hidden="true">&#128205;</span>
+                            <input id="dfCity" name="city" type="text" placeholder="e.g. Mumbai" />
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="dfState">State</label>
+                        <div class="input-container">
+                            <span class="input-icon" aria-hidden="true">&#127757;</span>
+                            <input id="dfState" name="state" type="text" placeholder="e.g. Maharashtra" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Specific Address -->
+                <div class="form-group mb-3">
+                    <label for="dfPerfectLocation">Specific Pickup Address</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9872;</span>
+                        <input id="dfPerfectLocation" name="perfectLocation" type="text"
+                               placeholder="e.g. Shop 4, MG Road, Near Railway Station" />
+                    </div>
+                </div>
+
+                <!-- Feedback -->
+                <div id="addFoodMessage" class="form-message mb-3" role="alert" aria-live="polite"></div>
+
+                <!-- Submit -->
+                <button id="addFoodSubmitBtn" class="auth-submit-btn" type="submit">
+                    <span>Submit Donation</span>
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    // ── Auth Guard ───────────────────────────────────────────────────────────
+    var token = window.FoodBridge ? window.FoodBridge.getToken() : '';
+    if (!token) { window.location.replace('/Home/Login'); return; }
+    if (window.FoodBridge && !window.FoodBridge.isDonor()) {
+        window.location.replace('/Home/Login'); return;
+    }
+
+    // ── Greet donor ──────────────────────────────────────────────────────────
+    var email    = window.FoodBridge ? window.FoodBridge.getUserEmail() : '';
+    var greeting = document.getElementById('donorGreeting');
+    if (greeting && email) {
+        var name = email.split('@@')[0];
+        greeting.textContent = 'Welcome back, ' + name.charAt(0).toUpperCase() + name.slice(1) + '.';
+    }
+
+    // Auto-fill email in the add-food form
+    var emailInput = document.getElementById('dfEmailID');
+    if (emailInput && email) emailInput.value = email;
+
+    // ── Tab switching ────────────────────────────────────────────────────────
+    var tabFeed    = document.getElementById('tabFeed');
+    var tabAddFood = document.getElementById('tabAddFood');
+    var feedPanel  = document.getElementById('feedPanel');
+    var addPanel   = document.getElementById('addFoodPanel');
+
+    function showTab(which) {
+        var isFeed = (which === 'feed');
+        feedPanel.style.display  = isFeed ? '' : 'none';
+        addPanel.style.display   = isFeed ? 'none' : '';
+        tabFeed.classList.toggle('active', isFeed);
+        tabFeed.setAttribute('aria-selected', String(isFeed));
+        tabAddFood.classList.toggle('active', !isFeed);
+        tabAddFood.setAttribute('aria-selected', String(!isFeed));
+    }
+
+    tabFeed.addEventListener('click', function() { showTab('feed'); loadFeed(); });
+    tabAddFood.addEventListener('click', function() { showTab('add'); });
+
+    // ── Feed Loader — GET /DonerHome/display ─────────────────────────────────
+    var feedLoading = document.getElementById('feedLoading');
+    var feedError   = document.getElementById('feedError');
+    var foodGrid    = document.getElementById('foodGrid');
+    var metricTotal  = document.getElementById('metricTotal');
+    var metricPending = document.getElementById('metricPending');
+
+    function statusBadgeHtml(status) {
+        var s = (status || 'pending').toLowerCase();
+        var color = s === 'pending'   ? 'var(--orange-primary)' :
+                    s === 'completed' ? 'var(--success)' : 'var(--text-muted)';
+        return '<span class="status-indicator" style="color:' + color + ';">' +
+               '<span class="status-dot" style="background:' + color + ';"></span>' +
+               s.charAt(0).toUpperCase() + s.slice(1) +
+               '</span>';
+    }
+
+    function formatDate(dt) {
+        if (!dt) return '';
+        try {
+            return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        } catch(e) { return dt; }
+    }
+
+    function buildFoodCard(food) {
+        var items = Array.isArray(food.items) ? food.items : [];
+        var itemTags = items.length
+            ? items.map(function(t) { return '<span class="food-item-tag">' + escHtml(t) + '</span>'; }).join('')
+            : '<span class="food-item-tag" style="color:var(--text-muted);">No items listed</span>';
+
+        var loc = [food.perfectLocation, food.city, food.state].filter(Boolean).join(', ');
+
+        return '<article class="food-card">' +
+            '<div class="food-card-top">' +
+                '<h4 class="food-title">' + escHtml(food.foodName || food.FoodName || '—') + '</h4>' +
+                '<span class="portion-pill">&#9830; ' + (food.quntity || 0) + ' servings</span>' +
+            '</div>' +
+            '<div class="donor-meta-row">' +
+                '<span aria-hidden="true">&#9993;</span>' +
+                '<span class="meta-donor">' + escHtml(food.emailID || '') + '</span>' +
+                (loc ? '&nbsp;&bull;&nbsp;<span>' + escHtml(loc) + '</span>' : '') +
+            '</div>' +
+            '<div class="item-tags-wrap">' + itemTags + '</div>' +
+            '<div class="food-card-footer">' +
+                statusBadgeHtml(food.status) +
+                '<span style="color:var(--text-muted);font-size:12px;">' + formatDate(food.donationDateTime) + '</span>' +
+            '</div>' +
+        '</article>';
+    }
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    async function loadFeed() {
+        feedLoading.style.display = '';
+        feedError.style.display   = 'none';
+        foodGrid.innerHTML        = '';
+
+        try {
+            var resp = await window.FoodBridge.authFetch('/DonerHome/display');
+
+            if (resp.status === 401 || resp.status === 403) {
+                window.location.replace('/Home/Login');
+                return;
+            }
+            if (!resp.ok) {
+                throw new Error('Server returned ' + resp.status);
+            }
+
+            var data = await resp.json();
+            feedLoading.style.display = 'none';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                foodGrid.innerHTML =
+                    '<div class="empty-state">' +
+                    '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
+                    '<h4>No donations listed yet</h4>' +
+                    '<p>Use the <strong>Add Donation</strong> tab to list your first food donation.</p>' +
+                    '</div>';
+                metricTotal.textContent  = '0';
+                metricPending.textContent = '0';
+                return;
+            }
+
+            // Metrics
+            metricTotal.textContent   = data.length;
+            var pending = data.filter(function(f) { return (f.status || '').toLowerCase() === 'pending'; }).length;
+            metricPending.textContent = pending;
+
+            // Render cards
+            foodGrid.innerHTML = data.map(buildFoodCard).join('');
+
+        } catch (err) {
+            feedLoading.style.display = 'none';
+            feedError.style.display   = '';
+            feedError.textContent     = 'Failed to load donations: ' + (err.message || 'Unknown error.');
+        }
+    }
+
+    // Expose for global modal callback (site.js)
+    window.fetchDonorFoodFeed = loadFeed;
+
+    // Refresh button
+    document.getElementById('refreshFeedBtn').addEventListener('click', loadFeed);
+
+    // ── Add Food Form — POST /DonerHome ──────────────────────────────────────
+    var addFoodForm    = document.getElementById('addFoodForm');
+    var addFoodSubmit  = document.getElementById('addFoodSubmitBtn');
+    var addFoodMessage = document.getElementById('addFoodMessage');
+
+    function showAddMsg(text, isError) {
+        addFoodMessage.textContent = text;
+        addFoodMessage.className   = 'form-message mb-3 ' + (isError ? 'is-error' : 'is-success');
+    }
+
+    function setAddLoading(loading) {
+        addFoodSubmit.disabled = loading;
+        addFoodSubmit.innerHTML = loading
+            ? 'Submitting… <span class="spinner-dot" aria-hidden="true"></span>'
+            : '<span>Submit Donation</span><span aria-hidden="true">&rarr;</span>';
+    }
+
+    addFoodForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        addFoodMessage.textContent = '';
+        addFoodMessage.className   = 'form-message mb-3';
+
+        var foodName        = document.getElementById('dfFoodName').value.trim();
+        var emailID         = document.getElementById('dfEmailID').value.trim();
+        var quntity         = parseInt(document.getElementById('dfQuantity').value, 10);
+        var rawItems        = document.getElementById('dfItems').value.trim();
+        var city            = document.getElementById('dfCity').value.trim();
+        var state           = document.getElementById('dfState').value.trim();
+        var perfectLocation = document.getElementById('dfPerfectLocation').value.trim();
+
+        if (!foodName)          { showAddMsg('Please enter a food title.', true);       return; }
+        if (!emailID)           { showAddMsg('Donor email is missing. Please sign in again.', true); return; }
+        if (isNaN(quntity) || quntity < 1) { showAddMsg('Please enter a valid quantity (at least 1).', true); return; }
+
+        var items = rawItems
+            ? rawItems.split(',').map(function(s) { return s.trim(); }).filter(Boolean)
+            : [foodName];
+
+        setAddLoading(true);
+
+        try {
+            var resp = await window.FoodBridge.authFetch('/DonerHome', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    FoodName:        foodName,
+                    emailID:         emailID,
+                    quntity:         quntity,
+                    items:           items,
+                    city:            city || null,
+                    state:           state || null,
+                    perfectLocation: perfectLocation || null
+                })
+            });
+
+            if (resp.status === 401 || resp.status === 403) {
+                window.location.replace('/Home/Login'); return;
+            }
+
+            var text = await resp.text();
+
+            if (text === 'Food added' || (resp.ok && text.toLowerCase().includes('food added'))) {
+                showAddMsg('Donation listed successfully! View it in the My Donations tab.', false);
+                addFoodForm.reset();
+                // Re-fill email after reset
+                if (emailInput) emailInput.value = email;
+            } else if (text === 'user not found') {
+                showAddMsg('Account not found on the server. Please sign in again.', true);
+            } else if (!resp.ok) {
+                showAddMsg('Server error (' + resp.status + '). Please try again.', true);
+            } else {
+                showAddMsg(text || 'Unexpected response.', true);
+            }
+
+        } catch (err) {
+            showAddMsg('Network error: ' + (err.message || 'Please check your connection.'), true);
+        } finally {
+            setAddLoading(false);
+        }
+    });
+
+    // ── Initial load ─────────────────────────────────────────────────────────
+    loadFeed();
+
+})();
+</script>
+}

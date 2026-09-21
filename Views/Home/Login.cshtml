@@ -1,135 +1,220 @@
 @{
-    ViewData["Title"] = "Sign in to FoodBridge";
+    ViewData["Title"] = "Sign In";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<section class="signup-page login-page">
-    <div class="signup-orb signup-orb-one"></div>
-    <div class="signup-orb signup-orb-two"></div>
+<section class="auth-page" id="loginPage" aria-label="Sign In">
+    <div class="auth-ambient-glow" aria-hidden="true"></div>
 
-    <div class="signup-shell">
-        <aside class="signup-intro">
-            <a class="brand" asp-controller="Home" asp-action="Index" aria-label="FoodBridge home">
-                <span class="brand-mark" aria-hidden="true">&hearts;</span>
-                <span>FoodBridge</span>
-            </a>
-            <div class="intro-copy">
-                <p class="eyebrow">Welcome back</p>
-                <h1>Every shared meal starts with a connection.</h1>
-                <p>Sign in to continue making a difference in your local food community.</p>
+    <div class="auth-shell">
+        <!-- Sidebar -->
+        <aside class="auth-sidebar">
+            <div>
+                <p class="eyebrow">Welcome Back</p>
+                <h1>Sign in to your account.</h1>
+                <p class="desc">
+                    Access the FoodBridge platform to manage your donations,
+                    track food requests, and connect with the community.
+                </p>
+
+                <div class="feature-bullets">
+                    <div class="bullet-item">
+                        <span class="bullet-icon" aria-hidden="true">&#10003;</span>
+                        <span>Donors — list and manage food donations</span>
+                    </div>
+                    <div class="bullet-item">
+                        <span class="bullet-icon" aria-hidden="true">&#10003;</span>
+                        <span>Receivers — view incoming food requests</span>
+                    </div>
+                    <div class="bullet-item">
+                        <span class="bullet-icon" aria-hidden="true">&#10003;</span>
+                        <span>Secure session with JWT authentication</span>
+                    </div>
+                </div>
             </div>
-            <div class="impact-points">
-                <div><span class="impact-icon">&#10022;</span><span>Share what you have</span></div>
-                <div><span class="impact-icon">&#10022;</span><span>Find food when it matters</span></div>
-                <div><span class="impact-icon">&#10022;</span><span>Strengthen your community</span></div>
-            </div>
-            <p class="intro-footer">Together, we can make good food go further.</p>
+            <p class="quote-footer">
+                &ldquo;Zero waste. Direct impact. Powered by community.&rdquo;
+            </p>
         </aside>
 
-        <main class="signup-card login-card">
-            <div class="card-heading">
-                <span class="welcome-badge">Good to see you</span>
-                <h2>Welcome back</h2>
-                <p>Enter your details to access FoodBridge.</p>
+        <!-- Form Panel -->
+        <div class="auth-form-panel">
+            <div class="form-header">
+                <span class="tag-pill">Secure Login</span>
+                <h2>Sign in to FoodBridge</h2>
+                <p>Enter your credentials to access your dashboard.</p>
             </div>
 
             <form id="loginForm" novalidate>
+
+                <!-- Email -->
                 <div class="form-group">
-                    <label for="email">Email address</label>
-                    <div class="input-wrap">
-                        <span class="field-icon" aria-hidden="true">&#9993;</span>
-                        <input id="email" name="EmailID" type="email" placeholder="you@example.com" autocomplete="email" required />
+                    <label for="loginEmail">Email Address</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#9993;</span>
+                        <input id="loginEmail"
+                               name="EmailID"
+                               type="email"
+                               placeholder="you@example.com"
+                               autocomplete="email"
+                               required />
                     </div>
                 </div>
 
+                <!-- Password -->
                 <div class="form-group">
-                    <div class="label-row">
-                        <label for="password">Password</label>
-                        <a href="#" class="forgot-link">Forgot password?</a>
+                    <div class="label-between">
+                        <label for="loginPassword">Password</label>
                     </div>
-                    <div class="input-wrap">
-                        <span class="field-icon" aria-hidden="true">&#9674;</span>
-                        <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
-                        <button class="password-toggle" type="button" aria-label="Show password" aria-pressed="false">Show</button>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#128274;</span>
+                        <input id="loginPassword"
+                               name="password"
+                               type="password"
+                               placeholder="Enter your password"
+                               autocomplete="current-password"
+                               required />
+                        <button type="button" class="input-toggle-btn" id="toggleLoginPwd" aria-label="Toggle password visibility">SHOW</button>
                     </div>
                 </div>
 
-                <label class="remember-check">
-                    <input id="rememberMe" type="checkbox" />
+                <!-- Remember Me -->
+                <label class="form-check-row" for="loginRemember">
+                    <input id="loginRemember" type="checkbox" />
                     <span>Keep me signed in</span>
                 </label>
 
-                <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
-                <button id="loginButton" class="signup-button" type="submit">Sign in <span aria-hidden="true">&rarr;</span></button>
+                <!-- Feedback -->
+                <div id="loginMessage" class="form-message" role="alert" aria-live="polite"></div>
+
+                <!-- Submit -->
+                <button id="loginSubmitBtn" class="auth-submit-btn" type="submit">
+                    <span>Sign In</span>
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
             </form>
 
-            <p class="signin-note">New to FoodBridge? <a asp-controller="Home" asp-action="Index">Create an account</a></p>
-        </main>
+            <p class="auth-switch-note">
+                Don&rsquo;t have an account?
+                <a href="/Home/Index">Create one for free</a>
+            </p>
+        </div>
     </div>
 </section>
 
 @section Scripts {
-    <script>
-        (() => {
-            const form = document.getElementById('loginForm');
-            const button = document.getElementById('loginButton');
-            const message = document.getElementById('formMessage');
-            const password = document.getElementById('password');
-            const toggle = document.querySelector('.password-toggle');
-            const rememberMe = document.getElementById('rememberMe');
-            const tokenKey = 'foodBridge.jwt';
+<script>
+(function () {
+    'use strict';
 
-            toggle.addEventListener('click', () => {
-                const hidden = password.type === 'password';
-                password.type = hidden ? 'text' : 'password';
-                toggle.textContent = hidden ? 'Hide' : 'Show';
-                toggle.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
-                toggle.setAttribute('aria-pressed', String(hidden));
+    // If already authenticated, redirect by role
+    if (window.FoodBridge && window.FoodBridge.getToken()) {
+        var existingRole = window.FoodBridge.getUserRole();
+        if (existingRole === 'Donor')    { window.location.replace('/Home/DonerHome');    return; }
+        if (existingRole === 'Receiver') { window.location.replace('/Home/ReceiverHome'); return; }
+    }
+
+    // Password toggle
+    var toggleBtn = document.getElementById('toggleLoginPwd');
+    var pwdInput  = document.getElementById('loginPassword');
+    if (toggleBtn && pwdInput) {
+        toggleBtn.addEventListener('click', function () {
+            var isHidden = pwdInput.type === 'password';
+            pwdInput.type   = isHidden ? 'text' : 'password';
+            toggleBtn.textContent = isHidden ? 'HIDE' : 'SHOW';
+        });
+    }
+
+    // Form submission
+    var form       = document.getElementById('loginForm');
+    var submitBtn  = document.getElementById('loginSubmitBtn');
+    var msgEl      = document.getElementById('loginMessage');
+    var rememberCb = document.getElementById('loginRemember');
+
+    function showMsg(text, isError) {
+        msgEl.textContent = text;
+        msgEl.className   = 'form-message ' + (isError ? 'is-error' : 'is-success');
+    }
+
+    function setLoading(loading) {
+        submitBtn.disabled = loading;
+        submitBtn.innerHTML = loading
+            ? 'Signing in… <span class="spinner-dot" aria-hidden="true"></span>'
+            : '<span>Sign In</span><span aria-hidden="true">&rarr;</span>';
+    }
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        msgEl.textContent = '';
+        msgEl.className   = 'form-message';
+
+        var email    = document.getElementById('loginEmail').value.trim();
+        var password = document.getElementById('loginPassword').value;
+        var remember = rememberCb && rememberCb.checked;
+
+        if (!email)    { showMsg('Please enter your email address.', true); return; }
+        if (!password) { showMsg('Please enter your password.', true); return; }
+
+        setLoading(true);
+
+        try {
+            var response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ EmailID: email, password: password })
             });
 
-            form.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                message.textContent = '';
-                message.className = 'form-message';
+            var text = await response.text();
 
-                if (!form.checkValidity()) {
-                    form.classList.add('was-validated');
-                    message.textContent = 'Please enter your email address and password.';
-                    message.classList.add('is-error');
-                    return;
-                }
+            // Backend returns plain-text error strings on bad credentials
+            if (text === 'user not found') {
+                showMsg('No account found with this email. Please check or create an account.', true);
+                return;
+            }
+            if (text === 'invalid password') {
+                showMsg('Incorrect password. Please try again.', true);
+                return;
+            }
+            if (!response.ok) {
+                showMsg('Login failed (' + response.status + '). Please try again.', true);
+                return;
+            }
 
-                button.disabled = true;
-                button.innerHTML = 'Signing you in <span class="button-loader" aria-hidden="true"></span>';
+            // On success, text is the JWT token string
+            var token = text.replace(/^"(.*)"$/, '$1'); // strip surrounding quotes if any
 
-                try {
-                    const response = await fetch('/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            EmailID: document.getElementById('email').value.trim(),
-                            password: password.value
-                        })
-                    });
-                    const token = (await response.text()).trim();
-                    if (!response.ok || !token) {
-                        throw new Error(token || 'Unable to sign in. Please try again.');
-                    }
+            // Decode role from token for redirect
+            var role = '';
+            try {
+                var parts   = token.split('.');
+                var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+                role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
+                    || payload['role'] || payload['Role'] || '';
+                if (Array.isArray(role)) role = role[0] || '';
+                role = String(role).trim();
+            } catch (parseErr) {
+                console.error('Could not parse JWT role', parseErr);
+            }
 
-                    const storage = rememberMe.checked ? localStorage : sessionStorage;
-                    const otherStorage = rememberMe.checked ? sessionStorage : localStorage;
-                    otherStorage.removeItem(tokenKey);
-                    storage.setItem(tokenKey, token);
+            // Persist token (and basic user info for navbar)
+            if (window.FoodBridge) {
+                window.FoodBridge.setToken(token, remember, { email: email, role: role });
+            }
 
-                    message.textContent = 'Signed in successfully. Welcome back!';
-                    message.classList.add('is-success');
-                } catch (error) {
-                    message.textContent = error.message || 'Something went wrong. Please try again.';
-                    message.classList.add('is-error');
-                } finally {
-                    button.disabled = false;
-                    button.innerHTML = 'Sign in <span aria-hidden="true">&rarr;</span>';
-                }
-            });
-        })();
-    </script>
+            showMsg('Login successful! Redirecting…', false);
+
+            setTimeout(function () {
+                if (role === 'Donor')    { window.location.href = '/Home/DonerHome'; }
+                else if (role === 'Receiver') { window.location.href = '/Home/ReceiverHome'; }
+                else { window.location.href = '/Home/Index'; }
+            }, 600);
+
+        } catch (err) {
+            showMsg('Network error. Please check your connection.', true);
+        } finally {
+            setLoading(false);
+        }
+    });
+})();
+</script>
 }
