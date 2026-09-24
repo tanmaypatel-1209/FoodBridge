@@ -4,7 +4,6 @@ using FoodBridge.services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-
 namespace FoodBridge;
 
 public class Program
@@ -13,7 +12,10 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.Services.AddControllersWithViews();
+        builder.Services.AddHttpContextAccessor();
         builder.Services.AddSingleton<JWTCreate>();
+        builder.Services.AddScoped<MatchFoodRequirement>();
+        builder.Services.AddScoped<wastfood>();
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

@@ -239,7 +239,7 @@
             }
 
             var composedLocation = notes || [perfLoc, city, state].filter(Boolean).join(', ') || null;
-            var parsedDateTime   = reqDate ? new Date(reqDate).toISOString() : new Date().toISOString();
+            var parsedDateTime   = window.FoodBridge.toLocalDateTimeString(reqDate);
 
             setSubmitting(true);
 

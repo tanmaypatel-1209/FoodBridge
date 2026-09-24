@@ -23,6 +23,10 @@ public class FoodBridgeDB:DbContext
     {
         get { return Set<NeededFood>(); }
     }
+    public DbSet<MatchedFood> MatchedFoods
+    {
+        get { return Set<MatchedFood>(); }
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

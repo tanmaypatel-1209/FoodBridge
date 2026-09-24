@@ -5,6 +5,7 @@ using FoodBridge.services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 namespace FoodBridge.Controllers;
 
@@ -13,9 +14,10 @@ namespace FoodBridge.Controllers;
 public class DonerHome : ControllerBase
 {
     private readonly FoodBridgeDB context;
-
-    public DonerHome(FoodBridgeDB context)
+    private readonly wastfood wf;
+    public DonerHome(FoodBridgeDB context, wastfood wf)
     {
+        this.wf = wf;
         this.context = context;
     }
 
@@ -33,7 +35,6 @@ public class DonerHome : ControllerBase
             return Ok("user not found");
         }
 
-        // If composed location is not explicitly provided, build it from the 3 parts
         string? loc = foodDto.location;
         if (string.IsNullOrWhiteSpace(loc))
         {
@@ -62,11 +63,69 @@ public class DonerHome : ControllerBase
         return Ok("Food added");
     }
     [HttpGet("display")]
+    [HttpGet("display/pending")]
     public async Task<ActionResult<List<FoodDTO>>> DisplayFood()
     {
         var email = User.FindFirstValue(ClaimTypes.Email);
+        if (!string.IsNullOrEmpty(email))
+        {
+            await wf.foodWast(email, "Donar");
+        }
         List<Food> food = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
-            context.Foods.Where(f => f.emailID == email)
+            context.Foods.Where(f => f.emailID == email && f.status == "pending")
+        );
+        List<FoodDTO> foodDtos = new List<FoodDTO>();
+        foreach (Food f in food)
+        {
+            foodDtos.Add(new FoodDTO(f.id, f.emailID, f.quntity, f.FoodName, f.items, f.donationDateTime, f.status, f.location, f.city, f.state, f.perfectLocation));
+        }
+        return Ok(foodDtos);
+    }
+
+    [HttpGet("display/Allocated")]
+    public async Task<ActionResult<List<MatchedDTO>>> DisplayFoodAllocated()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        List<MatchedDTO> MatchedDtos = new List<MatchedDTO>();
+        var list = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            context.Foods.Where(f => f.emailID == email && f.status == "Allocated")
+        );
+        foreach (Food f in list)
+        {
+            var Matched = await context.MatchedFoods.FirstOrDefaultAsync(x => x.FID == f.id);
+            if (Matched != null)
+            {
+                var n = await context.NeededFoods.FirstOrDefaultAsync(x => x.id == Matched.NFID);
+                if (n != null)
+                {
+                    FoodDTO fd = new FoodDTO(f.id, f.emailID, f.quntity, f.FoodName, f.items, f.donationDateTime, f.status, f.location, f.city, f.state, f.perfectLocation);
+                    NeededFoodDTO nd = new NeededFoodDTO(n.id, n.emailID, n.quntity, n.requestDateTime, n.status, n.location, n.city, n.state, n.perfectLocation);
+                    MatchedDtos.Add(new MatchedDTO(fd, nd));
+                }
+            }
+        }
+        return Ok(MatchedDtos);
+    }
+    [HttpGet("display/NotMatched")]
+    public async Task<ActionResult<List<FoodDTO>>> DisplayFoodNotMatched()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        List<Food> food = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            context.Foods.Where(f => f.emailID == email && f.status == "NotMatched")
+        );
+        List<FoodDTO> foodDtos = new List<FoodDTO>();
+        foreach (Food f in food)
+        {
+            foodDtos.Add(new FoodDTO(f.id, f.emailID, f.quntity, f.FoodName, f.items, f.donationDateTime, f.status, f.location, f.city, f.state, f.perfectLocation));
+        }
+        return Ok(foodDtos);
+    }
+    [HttpGet("display/done")]
+    public async Task<ActionResult<List<FoodDTO>>> DisplayFoodDonated()
+    {
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        List<Food> food = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
+            context.Foods.Where(f => f.emailID == email && f.status == "done")
         );
         List<FoodDTO> foodDtos = new List<FoodDTO>();
         foreach (Food f in food)

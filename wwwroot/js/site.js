@@ -107,6 +107,16 @@ window.FoodBridge.authFetch = function (url, options = {}) {
     return fetch(url, options);
 };
 
+// Local date-time string helper (preserves user's local timezone instead of converting to UTC)
+window.FoodBridge.toLocalDateTimeString = function (val) {
+    if (val) {
+        return val.length === 16 ? val + ':00' : val;
+    }
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
 // Full Page Navigation with Authorization Header
 window.FoodBridge.navigateWithAuth = function (url) {
     const token = window.FoodBridge.getToken();

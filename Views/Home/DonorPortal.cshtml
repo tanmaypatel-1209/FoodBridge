@@ -84,6 +84,15 @@
                     </div>
                 </div>
 
+                <!-- Donation Date / Time -->
+                <div class="form-group mb-3">
+                    <label for="pDonationDate" style="font-size:13px;font-weight:600;">Donation / Prepared (Date &amp; Time)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#128197;</span>
+                        <input id="pDonationDate" name="donationDateTime" type="datetime-local" />
+                    </div>
+                </div>
+
                 <!-- City + State -->
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
                     <div class="form-group mb-3">
@@ -273,6 +282,8 @@
         var city            = document.getElementById('pCity').value.trim();
         var state           = document.getElementById('pState').value.trim();
         var perfectLocation = document.getElementById('pPerfectLocation').value.trim();
+        var donationDateVal = document.getElementById('pDonationDate').value;
+        var parsedDonationDate = window.FoodBridge.toLocalDateTimeString(donationDateVal);
 
         if (!foodName) { showMsg('Please enter a food title.', true); return; }
         if (!emailID)  { showMsg('Email is missing. Please sign in again.', true); return; }
@@ -289,13 +300,14 @@
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    FoodName:        foodName,
-                    emailID:         emailID,
-                    quntity:         quntity,
-                    items:           items,
-                    city:            city || null,
-                    state:           state || null,
-                    perfectLocation: perfectLocation || null
+                    FoodName:         foodName,
+                    emailID:          emailID,
+                    quntity:          quntity,
+                    items:            items,
+                    donationDateTime: parsedDonationDate,
+                    city:             city || null,
+                    state:            state || null,
+                    perfectLocation:  perfectLocation || null
                 })
             });
 

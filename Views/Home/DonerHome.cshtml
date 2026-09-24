@@ -10,37 +10,58 @@
         <div class="donor-hero-text">
             <span class="tag-pill">Donor Dashboard</span>
             <h1 id="donorGreeting">Welcome back, Donor.</h1>
-            <p>Manage your food donations and track their status below.</p>
+            <p>Track your food donations across categories and contribute surplus meals.</p>
         </div>
         <div class="donor-metrics">
-            <div class="metric-card">
-                <span class="metric-value highlight" id="metricTotal">—</span>
-                <span class="metric-label">Total Listings</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-value" id="metricPending">—</span>
+            <div class="metric-card metric-card-interactive" id="mCardPending" title="View Pending Donations">
+                <span class="metric-value highlight" id="metricPending">—</span>
                 <span class="metric-label">Pending</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="mCardAllocated" title="View Allocated Donations">
+                <span class="metric-value" style="color:#2563eb;" id="metricAllocated">—</span>
+                <span class="metric-label">Allocated</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="mCardNotMatched" title="View Unmatched Donations">
+                <span class="metric-value" style="color:#dc2626;" id="metricNotMatched">—</span>
+                <span class="metric-label">Not Matched</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="mCardDone" title="View Completed Donations">
+                <span class="metric-value" style="color:#16a34a;" id="metricDone">—</span>
+                <span class="metric-label">Completed</span>
             </div>
         </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="donor-nav-tabs" role="tablist" aria-label="Donor sections">
-        <button class="tab-btn active" id="tabFeed" role="tab" aria-selected="true" aria-controls="feedPanel">
-            <span class="tab-icon" aria-hidden="true">&#9776;</span> My Donations
+    <!-- Tab Navigation with 4 Food Categories + Add Donation -->
+    <div class="donor-nav-tabs" role="tablist" aria-label="Donor food categories">
+        <button class="tab-btn active" id="tabPending" data-category="pending" role="tab" aria-selected="true" aria-controls="feedPanel">
+            <span class="tab-icon" aria-hidden="true">&#9203;</span> Pending
+            <span class="tab-count-badge" id="badgePending">0</span>
         </button>
-        <button class="tab-btn" id="tabAddFood" role="tab" aria-selected="false" aria-controls="addFoodPanel">
+        <button class="tab-btn" id="tabAllocated" data-category="Allocated" role="tab" aria-selected="false" aria-controls="feedPanel">
+            <span class="tab-icon" aria-hidden="true">&#129309;</span> Allocated
+            <span class="tab-count-badge" id="badgeAllocated">0</span>
+        </button>
+        <button class="tab-btn" id="tabNotMatched" data-category="NotMatched" role="tab" aria-selected="false" aria-controls="feedPanel">
+            <span class="tab-icon" aria-hidden="true">&#9888;</span> Not Matched
+            <span class="tab-count-badge" id="badgeNotMatched">0</span>
+        </button>
+        <button class="tab-btn" id="tabDone" data-category="done" role="tab" aria-selected="false" aria-controls="feedPanel">
+            <span class="tab-icon" aria-hidden="true">&#10003;</span> Completed
+            <span class="tab-count-badge" id="badgeDone">0</span>
+        </button>
+        <button class="tab-btn" id="tabAddFood" role="tab" aria-selected="false" aria-controls="addFoodPanel" style="margin-left:auto;">
             <span class="tab-icon" aria-hidden="true">&#43;</span> Add Donation
         </button>
     </div>
 
     <!-- Workspace: Feed Panel -->
-    <div id="feedPanel" role="tabpanel" aria-labelledby="tabFeed">
+    <div id="feedPanel" role="tabpanel" aria-labelledby="tabPending">
         <div class="donor-feed-section">
             <div class="feed-header">
                 <div>
-                    <h3>Your Food Donations</h3>
-                    <p>All listings are fetched live from the server.</p>
+                    <h3 id="categoryHeading">Pending Food Donations</h3>
+                    <p id="categorySubtitle">Listings currently awaiting matching or allocation.</p>
                 </div>
                 <button id="refreshFeedBtn" class="btn-secondary-custom" type="button" aria-label="Refresh donations list">
                     &#8635; Refresh
@@ -51,7 +72,7 @@
             <div id="feedLoading" class="feed-state" aria-live="polite" style="display:none;">
                 <div class="feed-loading-inner">
                     <span class="spinner-dot" style="display:inline-block;border-color:rgba(0,0,0,.15);border-top-color:var(--orange-primary);width:22px;height:22px;" aria-hidden="true"></span>
-                    <span>Loading your donations…</span>
+                    <span>Loading donations…</span>
                 </div>
             </div>
 
@@ -116,6 +137,15 @@
                         <span class="input-icon" aria-hidden="true">&#9679;</span>
                         <input id="dfItems" name="items" type="text"
                                placeholder="e.g. Sourdough, Bagels, Croissants" />
+                    </div>
+                </div>
+
+                <!-- Donation Date / Time -->
+                <div class="form-group mb-3">
+                    <label for="dfDonationDate">Donation / Prepared (Date &amp; Time)</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#128197;</span>
+                        <input id="dfDonationDate" name="donationDateTime" type="datetime-local" />
                     </div>
                 </div>
 
@@ -185,39 +215,151 @@
     var emailInput = document.getElementById('dfEmailID');
     if (emailInput && email) emailInput.value = email;
 
-    // ── Tab switching ────────────────────────────────────────────────────────
-    var tabFeed    = document.getElementById('tabFeed');
-    var tabAddFood = document.getElementById('tabAddFood');
-    var feedPanel  = document.getElementById('feedPanel');
-    var addPanel   = document.getElementById('addFoodPanel');
+    // ── Category Configuration ───────────────────────────────────────────────
+    var CATEGORIES = {
+        'pending': {
+            title: 'Pending Food Donations',
+            subtitle: 'Donations waiting to be matched with recipient requirements.',
+            url: '/DonerHome/display/pending',
+            emptyText: 'No pending food donations.',
+            emptyDesc: 'New food donations you submit will appear here until allocated.'
+        },
+        'Allocated': {
+            title: 'Allocated Food Donations',
+            subtitle: 'Donations that have been matched and reserved for receiving NGOs.',
+            url: '/DonerHome/display/Allocated',
+            emptyText: 'No allocated food donations.',
+            emptyDesc: 'When your pending donations are matched with recipient requests, they will show up here.'
+        },
+        'NotMatched': {
+            title: 'Unmatched Food Donations',
+            subtitle: 'Listings that could not be matched automatically or require review.',
+            url: '/DonerHome/display/NotMatched',
+            emptyText: 'No unmatched food donations.',
+            emptyDesc: 'Items that cannot be fulfilled within constraints will be tracked here.'
+        },
+        'done': {
+            title: 'Completed Food Donations',
+            subtitle: 'Donations that have been successfully distributed and fulfilled.',
+            url: '/DonerHome/display/done',
+            emptyText: 'No completed food donations yet.',
+            emptyDesc: 'Donations marked as completed will be recorded here.'
+        }
+    };
 
-    function showTab(which) {
-        var isFeed = (which === 'feed');
-        feedPanel.style.display  = isFeed ? '' : 'none';
-        addPanel.style.display   = isFeed ? 'none' : '';
-        tabFeed.classList.toggle('active', isFeed);
-        tabFeed.setAttribute('aria-selected', String(isFeed));
-        tabAddFood.classList.toggle('active', !isFeed);
-        tabAddFood.setAttribute('aria-selected', String(!isFeed));
+    var currentCategory = 'pending';
+
+    // ── UI Elements ──────────────────────────────────────────────────────────
+    var categoryTabs = {
+        'pending': document.getElementById('tabPending'),
+        'Allocated': document.getElementById('tabAllocated'),
+        'NotMatched': document.getElementById('tabNotMatched'),
+        'done': document.getElementById('tabDone')
+    };
+
+    var tabAddFood        = document.getElementById('tabAddFood');
+    var feedPanel         = document.getElementById('feedPanel');
+    var addPanel          = document.getElementById('addFoodPanel');
+    var categoryHeading   = document.getElementById('categoryHeading');
+    var categorySubtitle  = document.getElementById('categorySubtitle');
+    var feedLoading       = document.getElementById('feedLoading');
+    var feedError         = document.getElementById('feedError');
+    var foodGrid          = document.getElementById('foodGrid');
+
+    var badges = {
+        'pending': document.getElementById('badgePending'),
+        'Allocated': document.getElementById('badgeAllocated'),
+        'NotMatched': document.getElementById('badgeNotMatched'),
+        'done': document.getElementById('badgeDone')
+    };
+
+    var metricEls = {
+        'pending': document.getElementById('metricPending'),
+        'Allocated': document.getElementById('metricAllocated'),
+        'NotMatched': document.getElementById('metricNotMatched'),
+        'done': document.getElementById('metricDone')
+    };
+
+    // Metric card click-to-filter
+    document.getElementById('mCardPending').addEventListener('click', function() { selectCategory('pending'); });
+    document.getElementById('mCardAllocated').addEventListener('click', function() { selectCategory('Allocated'); });
+    document.getElementById('mCardNotMatched').addEventListener('click', function() { selectCategory('NotMatched'); });
+    document.getElementById('mCardDone').addEventListener('click', function() { selectCategory('done'); });
+
+    // Tab buttons event listeners
+    Object.keys(categoryTabs).forEach(function(cat) {
+        if (categoryTabs[cat]) {
+            categoryTabs[cat].addEventListener('click', function() {
+                selectCategory(cat);
+            });
+        }
+    });
+
+    tabAddFood.addEventListener('click', function() {
+        showAddPanel();
+    });
+
+    function showAddPanel() {
+        feedPanel.style.display = 'none';
+        addPanel.style.display  = '';
+        Object.keys(categoryTabs).forEach(function(k) {
+            categoryTabs[k].classList.remove('active');
+            categoryTabs[k].setAttribute('aria-selected', 'false');
+        });
+        tabAddFood.classList.add('active');
+        tabAddFood.setAttribute('aria-selected', 'true');
     }
 
-    tabFeed.addEventListener('click', function() { showTab('feed'); loadFeed(); });
-    tabAddFood.addEventListener('click', function() { showTab('add'); });
+    function selectCategory(cat) {
+        if (!CATEGORIES[cat]) return;
+        currentCategory = cat;
 
-    // ── Feed Loader — GET /DonerHome/display ─────────────────────────────────
-    var feedLoading = document.getElementById('feedLoading');
-    var feedError   = document.getElementById('feedError');
-    var foodGrid    = document.getElementById('foodGrid');
-    var metricTotal  = document.getElementById('metricTotal');
-    var metricPending = document.getElementById('metricPending');
+        feedPanel.style.display = '';
+        addPanel.style.display  = 'none';
 
+        Object.keys(categoryTabs).forEach(function(k) {
+            var isActive = (k === cat);
+            categoryTabs[k].classList.toggle('active', isActive);
+            categoryTabs[k].setAttribute('aria-selected', String(isActive));
+        });
+        tabAddFood.classList.remove('active');
+        tabAddFood.setAttribute('aria-selected', 'false');
+
+        categoryHeading.textContent  = CATEGORIES[cat].title;
+        categorySubtitle.textContent = CATEGORIES[cat].subtitle;
+
+        loadCategoryFeed(cat);
+    }
+
+    // ── Status Badges & Card Template ────────────────────────────────────────
     function statusBadgeHtml(status) {
         var s = (status || 'pending').toLowerCase();
-        var color = s === 'pending'   ? 'var(--orange-primary)' :
-                    s === 'completed' ? 'var(--success)' : 'var(--text-muted)';
-        return '<span class="status-indicator" style="color:' + color + ';">' +
-               '<span class="status-dot" style="background:' + color + ';"></span>' +
-               s.charAt(0).toUpperCase() + s.slice(1) +
+        var color = '#f97316';
+        var bg = 'rgba(249, 115, 22, 0.12)';
+        var label = 'Pending';
+
+        if (s === 'pending') {
+            color = '#f97316';
+            bg = 'rgba(249, 115, 22, 0.12)';
+            label = 'Pending';
+        } else if (s === 'allocated') {
+            color = '#2563eb';
+            bg = 'rgba(37, 99, 235, 0.12)';
+            label = 'Allocated';
+        } else if (s === 'notmatched' || s === 'not matched') {
+            color = '#dc2626';
+            bg = 'rgba(220, 38, 38, 0.12)';
+            label = 'Not Matched';
+        } else if (s === 'done' || s === 'completed') {
+            color = '#16a34a';
+            bg = 'rgba(220, 38, 38, 0.12)';
+            bg = 'rgba(22, 163, 74, 0.12)';
+            label = 'Completed';
+        }
+
+        return '<span class="status-indicator" style="color:' + color + ';background:' + bg + ';padding:4px 10px;border-radius:999px;font-weight:600;font-size:12px;display:inline-flex;align-items:center;gap:6px;">' +
+               '<span class="status-dot" style="background:' + color + ';width:6px;height:6px;border-radius:50%;display:inline-block;"></span>' +
+               label +
                '</span>';
     }
 
@@ -226,6 +368,14 @@
         try {
             return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
         } catch(e) { return dt; }
+    }
+
+    function escHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function buildFoodCard(food) {
@@ -244,7 +394,7 @@
             '<div class="donor-meta-row">' +
                 '<span aria-hidden="true">&#9993;</span>' +
                 '<span class="meta-donor">' + escHtml(food.emailID || '') + '</span>' +
-                (loc ? '&nbsp;&bull;&nbsp;<span>' + escHtml(loc) + '</span>' : '') +
+                (loc ? '&nbsp;&bull;&nbsp;<span>&#128205; ' + escHtml(loc) + '</span>' : '') +
             '</div>' +
             '<div class="item-tags-wrap">' + itemTags + '</div>' +
             '<div class="food-card-footer">' +
@@ -254,21 +404,76 @@
         '</article>';
     }
 
-    function escHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+    // ── Simple Graphical Connection Card for Allocated Matches ───────────────
+    function buildMatchedConnectionCard(matched) {
+        var food = matched.food || {};
+        var need = matched.neededFood || {};
+
+        var donorCity = escHtml(food.city || 'Your City');
+        var rcvCity   = escHtml(need.city || food.city || 'Recipient City');
+        var donorLoc  = escHtml([food.perfectLocation, food.city, food.state].filter(Boolean).join(', ') || food.location || '—');
+        var rcvLoc    = escHtml([need.perfectLocation, need.city, need.state].filter(Boolean).join(', ') || need.location || '—');
+
+        return '<article class="match-simple-card">' +
+            '<div class="match-simple-header">' +
+                '<div class="match-simple-title">' +
+                    '<strong>Allocated Match</strong>' +
+                    '<span class="match-route-tag">' + donorCity + ' &rarr; ' + rcvCity + '</span>' +
+                '</div>' +
+                '<span class="match-badge-simple">Allocated</span>' +
+            '</div>' +
+
+            '<div class="match-simple-body">' +
+                // Left: Donor (You)
+                '<div class="match-col">' +
+                    '<div class="match-col-role role-donor">&#127869; YOUR DONATION</div>' +
+                    '<h4 class="col-food-title">' + escHtml(food.foodName || food.FoodName || 'Donated Food') + '</h4>' +
+                    '<div><span class="col-qty-pill qty-donor">&#9830; ' + (food.quntity || 0) + ' Servings</span></div>' +
+                    '<div class="col-info-list">' +
+                        '<div class="col-info-item"><span class="icon">&#9993;</span> ' + escHtml(food.emailID || 'You') + '</div>' +
+                        '<div class="col-info-item"><span class="icon">&#128205;</span> ' + donorLoc + '</div>' +
+                        (food.donationDateTime ? '<div class="col-info-item"><span class="icon">&#128197;</span> ' + formatDate(food.donationDateTime) + '</div>' : '') +
+                    '</div>' +
+                '</div>' +
+
+                // Center: Graphical Connector
+                '<div class="match-connector">' +
+                    '<div class="connector-line"></div>' +
+                    '<div class="connector-icon-circle">&#8646;</div>' +
+                    '<div class="connector-label">MATCHED</div>' +
+                '</div>' +
+
+                // Right: Receiver (NGO)
+                '<div class="match-col">' +
+                    '<div class="match-col-role role-receiver">&#127970; RECIPIENT NGO</div>' +
+                    '<h4 class="col-food-title">' + escHtml(need.foodName || 'Requirement') + '</h4>' +
+                    '<div><span class="col-qty-pill qty-receiver">&#9830; ' + (need.quntity || 0) + ' Servings Needed</span></div>' +
+                    '<div class="col-info-list">' +
+                        '<div class="col-info-item"><span class="icon">&#9993;</span> ' + escHtml(need.emailID || 'Recipient NGO') + '</div>' +
+                        '<div class="col-info-item"><span class="icon">&#128205;</span> ' + rcvLoc + '</div>' +
+                        (need.requestDateTime ? '<div class="col-info-item"><span class="icon">&#128197;</span> ' + formatDate(need.requestDateTime) + '</div>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div class="match-simple-footer">' +
+                '<div>Pickup: <strong>' + donorLoc + '</strong> &rarr; Delivery: <strong>' + rcvLoc + '</strong></div>' +
+                (need.emailID ? '<a href="mailto:' + escHtml(need.emailID) + '?subject=FoodBridge%20Donation%20Handover">&#9993; Coordinate with Recipient NGO</a>' : '') +
+            '</div>' +
+        '</article>';
     }
 
-    async function loadFeed() {
+    // ── Feed Loader ──────────────────────────────────────────────────────────
+    async function loadCategoryFeed(cat) {
         feedLoading.style.display = '';
         feedError.style.display   = 'none';
         foodGrid.innerHTML        = '';
 
+        var config = CATEGORIES[cat];
+        if (!config) return;
+
         try {
-            var resp = await window.FoodBridge.authFetch('/DonerHome/display');
+            var resp = await window.FoodBridge.authFetch(config.url);
 
             if (resp.status === 401 || resp.status === 403) {
                 window.location.replace('/Home/Login');
@@ -281,38 +486,68 @@
             var data = await resp.json();
             feedLoading.style.display = 'none';
 
+            // Update badge and metric for this category
+            var count = Array.isArray(data) ? data.length : 0;
+            if (badges[cat]) badges[cat].textContent = count;
+            if (metricEls[cat]) metricEls[cat].textContent = count;
+
             if (!Array.isArray(data) || data.length === 0) {
+                foodGrid.classList.remove('allocation-feed-layout');
                 foodGrid.innerHTML =
                     '<div class="empty-state">' +
                     '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
-                    '<h4>No donations listed yet</h4>' +
-                    '<p>Use the <strong>Add Donation</strong> tab to list your first food donation.</p>' +
+                    '<h4>' + escHtml(config.emptyText) + '</h4>' +
+                    '<p>' + escHtml(config.emptyDesc) + '</p>' +
                     '</div>';
-                metricTotal.textContent  = '0';
-                metricPending.textContent = '0';
                 return;
             }
 
-            // Metrics
-            metricTotal.textContent   = data.length;
-            var pending = data.filter(function(f) { return (f.status || '').toLowerCase() === 'pending'; }).length;
-            metricPending.textContent = pending;
-
-            // Render cards
-            foodGrid.innerHTML = data.map(buildFoodCard).join('');
+            if (cat === 'Allocated') {
+                foodGrid.classList.add('allocation-feed-layout');
+                foodGrid.innerHTML = data.map(function(item) {
+                    if (item.food && item.neededFood) {
+                        return buildMatchedConnectionCard(item);
+                    }
+                    return buildFoodCard(item);
+                }).join('');
+            } else {
+                foodGrid.classList.remove('allocation-feed-layout');
+                foodGrid.innerHTML = data.map(buildFoodCard).join('');
+            }
 
         } catch (err) {
             feedLoading.style.display = 'none';
             feedError.style.display   = '';
-            feedError.textContent     = 'Failed to load donations: ' + (err.message || 'Unknown error.');
+            feedError.textContent     = 'Failed to load ' + cat + ' donations: ' + (err.message || 'Unknown error.');
         }
     }
 
+    // Refresh all category counts in the background
+    async function refreshAllCounts() {
+        Object.keys(CATEGORIES).forEach(async function(cat) {
+            try {
+                var resp = await window.FoodBridge.authFetch(CATEGORIES[cat].url);
+                if (resp.ok) {
+                    var data = await resp.json();
+                    var count = Array.isArray(data) ? data.length : 0;
+                    if (badges[cat]) badges[cat].textContent = count;
+                    if (metricEls[cat]) metricEls[cat].textContent = count;
+                }
+            } catch(e) { }
+        });
+    }
+
     // Expose for global modal callback (site.js)
-    window.fetchDonorFoodFeed = loadFeed;
+    window.fetchDonorFoodFeed = function() {
+        loadCategoryFeed(currentCategory);
+        refreshAllCounts();
+    };
 
     // Refresh button
-    document.getElementById('refreshFeedBtn').addEventListener('click', loadFeed);
+    document.getElementById('refreshFeedBtn').addEventListener('click', function() {
+        loadCategoryFeed(currentCategory);
+        refreshAllCounts();
+    });
 
     // ── Add Food Form — POST /DonerHome ──────────────────────────────────────
     var addFoodForm    = document.getElementById('addFoodForm');
@@ -343,6 +578,8 @@
         var city            = document.getElementById('dfCity').value.trim();
         var state           = document.getElementById('dfState').value.trim();
         var perfectLocation = document.getElementById('dfPerfectLocation').value.trim();
+        var donationDateVal = document.getElementById('dfDonationDate').value;
+        var parsedDonationDate = window.FoodBridge.toLocalDateTimeString(donationDateVal);
 
         if (!foodName)          { showAddMsg('Please enter a food title.', true);       return; }
         if (!emailID)           { showAddMsg('Donor email is missing. Please sign in again.', true); return; }
@@ -359,13 +596,14 @@
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    FoodName:        foodName,
-                    emailID:         emailID,
-                    quntity:         quntity,
-                    items:           items,
-                    city:            city || null,
-                    state:           state || null,
-                    perfectLocation: perfectLocation || null
+                    FoodName:         foodName,
+                    emailID:          emailID,
+                    quntity:          quntity,
+                    items:            items,
+                    donationDateTime: parsedDonationDate,
+                    city:             city || null,
+                    state:            state || null,
+                    perfectLocation:  perfectLocation || null
                 })
             });
 
@@ -376,10 +614,10 @@
             var text = await resp.text();
 
             if (text === 'Food added' || (resp.ok && text.toLowerCase().includes('food added'))) {
-                showAddMsg('Donation listed successfully! View it in the My Donations tab.', false);
+                showAddMsg('Donation listed successfully! It is now in Pending category.', false);
                 addFoodForm.reset();
-                // Re-fill email after reset
                 if (emailInput) emailInput.value = email;
+                refreshAllCounts();
             } else if (text === 'user not found') {
                 showAddMsg('Account not found on the server. Please sign in again.', true);
             } else if (!resp.ok) {
@@ -396,7 +634,8 @@
     });
 
     // ── Initial load ─────────────────────────────────────────────────────────
-    loadFeed();
+    selectCategory('pending');
+    refreshAllCounts();
 
 })();
 </script>

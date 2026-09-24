@@ -11,43 +11,60 @@
             <span class="tag-pill receiver-pill">Receiver Dashboard</span>
             <h1 id="receiverGreeting">Welcome back, Receiver.</h1>
             <p>
-                Review your food requests, track their fulfillment, and submit new donation needs.
+                Track food requests by category, review fulfillment status, and submit requirements.
             </p>
         </div>
-        <div class="donor-metrics" style="display:flex;align-items:center;gap:16px;">
-            <div class="metric-card">
-                <span class="metric-value highlight" id="rcvMetricTotal">—</span>
-                <span class="metric-label">Total Requests</span>
-            </div>
-            <div class="metric-card">
-                <span class="metric-value" id="rcvMetricPending">—</span>
+        <div class="donor-metrics">
+            <div class="metric-card metric-card-interactive" id="rcvMCardPending" title="View Pending Requests">
+                <span class="metric-value highlight" id="rcvMetricPending">—</span>
                 <span class="metric-label">Pending</span>
             </div>
-            <a href="/Home/RequestFood" class="btn-primary-custom" style="padding:10px 18px;white-space:nowrap;" aria-label="Go to Request Food Page">
-                &#43; New Request
-            </a>
+            <div class="metric-card metric-card-interactive" id="rcvMCardAllocated" title="View Allocated Requests">
+                <span class="metric-value" style="color:#2563eb;" id="rcvMetricAllocated">—</span>
+                <span class="metric-label">Allocated</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="rcvMCardNotMatched" title="View Unmatched Requests">
+                <span class="metric-value" style="color:#dc2626;" id="rcvMetricNotMatched">—</span>
+                <span class="metric-label">Not Matched</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="rcvMCardDone" title="View Completed Requests">
+                <span class="metric-value" style="color:#16a34a;" id="rcvMetricDone">—</span>
+                <span class="metric-label">Completed</span>
+            </div>
         </div>
     </div>
 
-    <!-- Tab Navigation -->
-    <div class="donor-nav-tabs" role="tablist" aria-label="Receiver sections">
-        <button class="tab-btn active" id="tabRcvFeed" role="tab" aria-selected="true" aria-controls="rcvFeedPanel">
-            <span class="tab-icon" aria-hidden="true">&#9776;</span> My Requests
+    <!-- Tab Navigation with 4 Categories + Request Food -->
+    <div class="donor-nav-tabs" role="tablist" aria-label="Receiver food categories">
+        <button class="tab-btn active" id="tabRcvPending" data-category="pending" role="tab" aria-selected="true" aria-controls="rcvFeedPanel">
+            <span class="tab-icon" aria-hidden="true">&#9203;</span> Pending
+            <span class="tab-count-badge" id="rcvBadgePending">0</span>
         </button>
-        <button class="tab-btn" id="tabRcvAdd" role="tab" aria-selected="false" aria-controls="rcvAddPanel">
+        <button class="tab-btn" id="tabRcvAllocated" data-category="Allocated" role="tab" aria-selected="false" aria-controls="rcvFeedPanel">
+            <span class="tab-icon" aria-hidden="true">&#129309;</span> Allocated
+            <span class="tab-count-badge" id="rcvBadgeAllocated">0</span>
+        </button>
+        <button class="tab-btn" id="tabRcvNotMatched" data-category="NotMatched" role="tab" aria-selected="false" aria-controls="rcvFeedPanel">
+            <span class="tab-icon" aria-hidden="true">&#9888;</span> Not Matched
+            <span class="tab-count-badge" id="rcvBadgeNotMatched">0</span>
+        </button>
+        <button class="tab-btn" id="tabRcvDone" data-category="done" role="tab" aria-selected="false" aria-controls="rcvFeedPanel">
+            <span class="tab-icon" aria-hidden="true">&#10003;</span> Completed
+            <span class="tab-count-badge" id="rcvBadgeDone">0</span>
+        </button>
+        <button class="tab-btn" id="tabRcvAdd" role="tab" aria-selected="false" aria-controls="rcvAddPanel" style="margin-left:auto;">
             <span class="tab-icon" aria-hidden="true">&#43;</span> Request Food
         </button>
     </div>
 
     <!-- Workspace: Feed Panel -->
-    <div id="rcvFeedPanel" role="tabpanel" aria-labelledby="tabRcvFeed">
+    <div id="rcvFeedPanel" role="tabpanel" aria-labelledby="tabRcvPending">
         <div class="donor-feed-section">
             <div class="feed-header">
                 <div>
-                    <h2 style="font-size:20px;margin:0 0 4px 0;">Food Requests</h2>
-                    <p>
-                        Showing your organisation&rsquo;s food requests &mdash;
-                        <code style="font-size:12px;color:var(--text-muted);">GET /NGOs/display</code>
+                    <h2 id="rcvCategoryHeading" style="font-size:20px;margin:0 0 4px 0;">Pending Food Requests</h2>
+                    <p id="rcvCategorySubtitle">
+                        Showing requirements currently waiting for matching donors.
                     </p>
                 </div>
                 <button id="rcvRefreshBtn" class="btn-secondary-custom" type="button" aria-label="Refresh food requests">
@@ -60,7 +77,7 @@
                 <span class="spinner-dot"
                       style="display:inline-block;width:22px;height:22px;border-color:rgba(0,0,0,.1);border-top-color:var(--orange-primary);"
                       aria-hidden="true"></span>
-                <span style="margin-left:10px;">Loading food requests…</span>
+                <span style="margin-left:10px;">Loading requests…</span>
             </div>
 
             <!-- Error -->
@@ -82,7 +99,7 @@
                 <span class="portion-pill">POST /NGOs</span>
             </div>
             <p class="card-subtitle">
-                Submit a new food requirement for your organisation. Donors in your region will be able to see and fulfill it.
+                Submit a new food requirement for your organisation. Donors in your region will be able to match and fulfill it.
             </p>
 
             <form id="addNeededFoodForm" novalidate>
@@ -149,20 +166,21 @@
                 <div class="form-group mb-3">
                     <label for="nfLocation">Additional Notes / Landmark</label>
                     <div class="input-container">
-                        <span class="input-icon" aria-hidden="true">&#9998;</span>
+                        <span class="input-icon" aria-hidden="true">&#128221;</span>
                         <input id="nfLocation" name="location" type="text"
-                               placeholder="e.g. Near Civil Hospital, accessible from main gate" />
+                               placeholder="e.g. Urgent requirement for night shelter" />
                     </div>
                 </div>
 
-                <!-- Feedback -->
+                <!-- Message -->
                 <div id="addNeededFoodMessage" class="form-message mb-3" role="alert" aria-live="polite"></div>
 
-                <!-- Submit -->
+                <!-- Submit Button -->
                 <button id="addNeededFoodSubmitBtn" class="auth-submit-btn" type="submit">
                     <span>Submit Food Request</span>
                     <span aria-hidden="true">&rarr;</span>
                 </button>
+
             </form>
         </div>
     </div>
@@ -181,71 +199,191 @@
         window.location.replace('/Home/Login'); return;
     }
 
-    // ── Greet ─────────────────────────────────────────────────────────────────
-    var email    = window.FoodBridge ? window.FoodBridge.getUserEmail() : '';
-    var greeting = document.getElementById('receiverGreeting');
-    if (greeting && email) {
-        var name = email.split('@@')[0];
-        greeting.textContent = 'Welcome back, ' + name.charAt(0).toUpperCase() + name.slice(1) + '.';
+    // ── Personalise Greeting ──────────────────────────────────────────────────
+    var email = window.FoodBridge ? window.FoodBridge.getUserEmail() : '';
+    var greetingEl = document.getElementById('receiverGreeting');
+    if (greetingEl && email) {
+        var localPart = email.split('@@')[0];
+        greetingEl.textContent = 'Welcome back, ' + localPart.charAt(0).toUpperCase() + localPart.slice(1) + '.';
     }
 
-    // Auto-fill email in request form
+    // Auto-fill email in form
     var emailInput = document.getElementById('nfEmailID');
     if (emailInput && email) emailInput.value = email;
 
-    // ── Tab Switching ─────────────────────────────────────────────────────────
-    var tabRcvFeed  = document.getElementById('tabRcvFeed');
-    var tabRcvAdd   = document.getElementById('tabRcvAdd');
-    var rcvFeedPanel = document.getElementById('rcvFeedPanel');
-    var rcvAddPanel  = document.getElementById('rcvAddPanel');
+    // ── Category Configuration ───────────────────────────────────────────────
+    var CATEGORIES = {
+        'pending': {
+            title: 'Pending Food Requests',
+            subtitle: 'Requirements waiting to be matched with surplus donations.',
+            url: '/NGOs/display/pending',
+            emptyText: 'No pending food requests.',
+            emptyDesc: 'New food requirements you submit will appear here until matched.'
+        },
+        'Allocated': {
+            title: 'Allocated Food Requests',
+            subtitle: 'Requirements matched and reserved with donor food listings.',
+            url: '/NGOs/display/Allocated',
+            emptyText: 'No allocated food requests.',
+            emptyDesc: 'When donor listings match your food needs, they will appear here.'
+        },
+        'NotMatched': {
+            title: 'Unmatched Food Requests',
+            subtitle: 'Requirements that could not be matched automatically.',
+            url: '/NGOs/display/NotMatched',
+            emptyText: 'No unmatched food requests.',
+            emptyDesc: 'Requests requiring manual coordination or additional donors.'
+        },
+        'done': {
+            title: 'Completed Food Requests',
+            subtitle: 'Requirements that have been fulfilled and received.',
+            url: '/NGOs/display/done',
+            emptyText: 'No completed food requests yet.',
+            emptyDesc: 'Completed distribution cycles will be recorded here.'
+        }
+    };
 
-    function showTab(which) {
-        var isFeed = (which === 'feed');
-        rcvFeedPanel.style.display = isFeed ? '' : 'none';
-        rcvAddPanel.style.display  = isFeed ? 'none' : '';
-        tabRcvFeed.classList.toggle('active', isFeed);
-        tabRcvFeed.setAttribute('aria-selected', String(isFeed));
-        tabRcvAdd.classList.toggle('active', !isFeed);
-        tabRcvAdd.setAttribute('aria-selected', String(!isFeed));
+    var currentCategory = 'pending';
+
+    // ── UI Elements ──────────────────────────────────────────────────────────
+    var categoryTabs = {
+        'pending': document.getElementById('tabRcvPending'),
+        'Allocated': document.getElementById('tabRcvAllocated'),
+        'NotMatched': document.getElementById('tabRcvNotMatched'),
+        'done': document.getElementById('tabRcvDone')
+    };
+
+    var tabRcvAdd            = document.getElementById('tabRcvAdd');
+    var rcvFeedPanel         = document.getElementById('rcvFeedPanel');
+    var rcvAddPanel          = document.getElementById('rcvAddPanel');
+    var rcvCategoryHeading   = document.getElementById('rcvCategoryHeading');
+    var rcvCategorySubtitle  = document.getElementById('rcvCategorySubtitle');
+    var rcvLoading           = document.getElementById('rcvLoading');
+    var rcvError             = document.getElementById('rcvError');
+    var rcvFoodGrid          = document.getElementById('rcvFoodGrid');
+
+    var badges = {
+        'pending': document.getElementById('rcvBadgePending'),
+        'Allocated': document.getElementById('rcvBadgeAllocated'),
+        'NotMatched': document.getElementById('rcvBadgeNotMatched'),
+        'done': document.getElementById('rcvBadgeDone')
+    };
+
+    var metricEls = {
+        'pending': document.getElementById('rcvMetricPending'),
+        'Allocated': document.getElementById('rcvMetricAllocated'),
+        'NotMatched': document.getElementById('rcvMetricNotMatched'),
+        'done': document.getElementById('rcvMetricDone')
+    };
+
+    // Metric card clicks
+    document.getElementById('rcvMCardPending').addEventListener('click', function() { selectCategory('pending'); });
+    document.getElementById('rcvMCardAllocated').addEventListener('click', function() { selectCategory('Allocated'); });
+    document.getElementById('rcvMCardNotMatched').addEventListener('click', function() { selectCategory('NotMatched'); });
+    document.getElementById('rcvMCardDone').addEventListener('click', function() { selectCategory('done'); });
+
+    // Tab buttons event listeners
+    Object.keys(categoryTabs).forEach(function(cat) {
+        if (categoryTabs[cat]) {
+            categoryTabs[cat].addEventListener('click', function() {
+                selectCategory(cat);
+            });
+        }
+    });
+
+    tabRcvAdd.addEventListener('click', function() {
+        showAddPanel();
+    });
+
+    function showAddPanel() {
+        rcvFeedPanel.style.display = 'none';
+        rcvAddPanel.style.display  = '';
+        Object.keys(categoryTabs).forEach(function(k) {
+            categoryTabs[k].classList.remove('active');
+            categoryTabs[k].setAttribute('aria-selected', 'false');
+        });
+        tabRcvAdd.classList.add('active');
+        tabRcvAdd.setAttribute('aria-selected', 'true');
     }
 
-    tabRcvFeed.addEventListener('click', function() { showTab('feed'); loadRequests(); });
-    tabRcvAdd.addEventListener('click', function() { showTab('add'); });
+    function selectCategory(cat) {
+        if (!CATEGORIES[cat]) return;
+        currentCategory = cat;
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    function escHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        rcvFeedPanel.style.display = '';
+        rcvAddPanel.style.display  = 'none';
+
+        Object.keys(categoryTabs).forEach(function(k) {
+            var isActive = (k === cat);
+            categoryTabs[k].classList.toggle('active', isActive);
+            categoryTabs[k].setAttribute('aria-selected', String(isActive));
+        });
+        tabRcvAdd.classList.remove('active');
+        tabRcvAdd.setAttribute('aria-selected', 'false');
+
+        rcvCategoryHeading.textContent  = CATEGORIES[cat].title;
+        rcvCategorySubtitle.textContent = CATEGORIES[cat].subtitle;
+
+        loadCategoryRequests(cat);
+    }
+
+    // ── Status Badges & Card Template ────────────────────────────────────────
+    function statusBadgeHtml(status) {
+        var s = (status || 'pending').toLowerCase();
+        var color = '#f97316';
+        var bg = 'rgba(249, 115, 22, 0.12)';
+        var label = 'Pending';
+
+        if (s === 'pending') {
+            color = '#f97316';
+            bg = 'rgba(249, 115, 22, 0.12)';
+            label = 'Pending';
+        } else if (s === 'allocated') {
+            color = '#2563eb';
+            bg = 'rgba(37, 99, 235, 0.12)';
+            label = 'Allocated';
+        } else if (s === 'notmatched' || s === 'not matched') {
+            color = '#dc2626';
+            bg = 'rgba(220, 38, 38, 0.12)';
+            label = 'Not Matched';
+        } else if (s === 'done' || s === 'completed') {
+            color = '#16a34a';
+            bg = 'rgba(22, 163, 74, 0.12)';
+            label = 'Completed';
+        }
+
+        return '<span class="status-indicator" style="color:' + color + ';background:' + bg + ';padding:4px 10px;border-radius:999px;font-weight:600;font-size:12px;display:inline-flex;align-items:center;gap:6px;">' +
+               '<span class="status-dot" style="background:' + color + ';width:6px;height:6px;border-radius:50%;display:inline-block;"></span>' +
+               label +
+               '</span>';
     }
 
     function formatDate(dt) {
         if (!dt) return '';
-        try { return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
-        catch(e) { return ''; }
+        try {
+            return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        } catch(e) { return dt; }
     }
 
-    function statusColor(s) {
-        s = (s || 'pending').toLowerCase();
-        return s === 'pending'   ? 'var(--orange-primary)' :
-               s === 'fulfilled' ? 'var(--success)' :
-               s === 'completed' ? 'var(--success)' : 'var(--text-muted)';
+    function escHtml(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     function buildRequestCard(food) {
+        var loc = [food.perfectLocation, food.city, food.state, food.location].filter(Boolean).join(', ');
         var items = Array.isArray(food.items) ? food.items : [];
         var tags = items.length
-            ? items.map(function(t) { return '<span class="food-item-tag">' + escHtml(t) + '</span>'; }).join('')
+            ? items.map(function (t) { return '<span class="food-item-tag">' + escHtml(t) + '</span>'; }).join('')
             : '';
-        var loc = [food.perfectLocation, food.city, food.state].filter(Boolean).join(', ') || food.location || '';
-        var c   = statusColor(food.status);
-        var title = food.foodName || food.FoodName || ('Food Request #' + (food.id || ''));
 
         return '<article class="food-card rcv-card">' +
-            '<div class="rcv-card-accent" aria-hidden="true"></div>' +
             '<div class="food-card-top">' +
-                '<h3 class="food-title">' + escHtml(title) + '</h3>' +
-                '<span class="portion-pill rcv-portion-pill">&#9668; ' + (food.quntity || 0) + ' needed</span>' +
+                '<h4 class="food-title">' + escHtml(food.foodName || 'Food Requirement') + '</h4>' +
+                '<span class="portion-pill">&#9830; ' + (food.quntity || 0) + ' portions</span>' +
             '</div>' +
             '<div class="donor-meta-row">' +
                 '<span aria-hidden="true">&#9993;</span>' +
@@ -254,31 +392,84 @@
             '</div>' +
             (tags ? '<div class="item-tags-wrap">' + tags + '</div>' : '') +
             '<div class="food-card-footer">' +
-                '<span class="status-indicator" style="color:' + c + ';">' +
-                    '<span class="status-dot" style="background:' + c + ';"></span>' +
-                    escHtml(food.status || 'pending') +
-                '</span>' +
+                statusBadgeHtml(food.status) +
                 '<span style="color:var(--text-muted);font-size:12px;">' +
-                    (food.requestDateTime ? 'Requested: ' + formatDate(food.requestDateTime) : '') +
+                    (food.requestDateTime ? 'Required: ' + formatDate(food.requestDateTime) : '') +
                 '</span>' +
             '</div>' +
         '</article>';
     }
 
-    // ── Feed Loader — GET /NGOs/display ───────────────────────────────────────
-    var rcvLoading   = document.getElementById('rcvLoading');
-    var rcvError     = document.getElementById('rcvError');
-    var rcvFoodGrid  = document.getElementById('rcvFoodGrid');
-    var metricTotal  = document.getElementById('rcvMetricTotal');
-    var metricPending = document.getElementById('rcvMetricPending');
+    // ── Simple Graphical Connection Card for Allocated Matches ───────────────
+    function buildMatchedConnectionCard(matched) {
+        var food = matched.food || {};
+        var need = matched.neededFood || {};
 
-    async function loadRequests() {
+        var donorCity = escHtml(food.city || 'Donor');
+        var rcvCity   = escHtml(need.city || food.city || 'Recipient');
+        var donorLoc  = escHtml([food.perfectLocation, food.city, food.state].filter(Boolean).join(', ') || food.location || '—');
+        var rcvLoc    = escHtml([need.perfectLocation, need.city, need.state].filter(Boolean).join(', ') || need.location || '—');
+
+        return '<article class="match-simple-card">' +
+            '<div class="match-simple-header">' +
+                '<div class="match-simple-title">' +
+                    '<strong>Allocated Match</strong>' +
+                    '<span class="match-route-tag">' + donorCity + ' &rarr; ' + rcvCity + '</span>' +
+                '</div>' +
+                '<span class="match-badge-simple">Allocated</span>' +
+            '</div>' +
+
+            '<div class="match-simple-body">' +
+                // Left: Donor
+                '<div class="match-col">' +
+                    '<div class="match-col-role role-donor">&#127869; DONOR</div>' +
+                    '<h4 class="col-food-title">' + escHtml(food.foodName || food.FoodName || 'Donated Food') + '</h4>' +
+                    '<div><span class="col-qty-pill qty-donor">&#9830; ' + (food.quntity || 0) + ' Servings</span></div>' +
+                    '<div class="col-info-list">' +
+                        '<div class="col-info-item"><span class="icon">&#9993;</span> ' + escHtml(food.emailID || '—') + '</div>' +
+                        '<div class="col-info-item"><span class="icon">&#128205;</span> ' + donorLoc + '</div>' +
+                        (food.donationDateTime ? '<div class="col-info-item"><span class="icon">&#128197;</span> ' + formatDate(food.donationDateTime) + '</div>' : '') +
+                    '</div>' +
+                '</div>' +
+
+                // Center: Graphical Connector
+                '<div class="match-connector">' +
+                    '<div class="connector-line"></div>' +
+                    '<div class="connector-icon-circle">&#8646;</div>' +
+                    '<div class="connector-label">MATCHED</div>' +
+                '</div>' +
+
+                // Right: Receiver (NGO)
+                '<div class="match-col">' +
+                    '<div class="match-col-role role-receiver">&#127970; RECIPIENT NGO</div>' +
+                    '<h4 class="col-food-title">' + escHtml(need.foodName || 'Requirement') + '</h4>' +
+                    '<div><span class="col-qty-pill qty-receiver">&#9830; ' + (need.quntity || 0) + ' Servings Needed</span></div>' +
+                    '<div class="col-info-list">' +
+                        '<div class="col-info-item"><span class="icon">&#9993;</span> ' + escHtml(need.emailID || '—') + '</div>' +
+                        '<div class="col-info-item"><span class="icon">&#128205;</span> ' + rcvLoc + '</div>' +
+                        (need.requestDateTime ? '<div class="col-info-item"><span class="icon">&#128197;</span> ' + formatDate(need.requestDateTime) + '</div>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+
+            '<div class="match-simple-footer">' +
+                '<div>Pickup: <strong>' + donorLoc + '</strong> &rarr; Delivery: <strong>' + rcvLoc + '</strong></div>' +
+                (food.emailID ? '<a href="mailto:' + escHtml(food.emailID) + '?subject=FoodBridge%20Allocation%20Handover">&#9993; Coordinate with Donor</a>' : '') +
+            '</div>' +
+        '</article>';
+    }
+
+    // ── Feed Loader ──────────────────────────────────────────────────────────
+    async function loadCategoryRequests(cat) {
         rcvLoading.style.display = '';
         rcvError.style.display   = 'none';
         rcvFoodGrid.innerHTML    = '';
 
+        var config = CATEGORIES[cat];
+        if (!config) return;
+
         try {
-            var resp = await window.FoodBridge.authFetch('/NGOs/display');
+            var resp = await window.FoodBridge.authFetch(config.url);
 
             if (resp.status === 401 || resp.status === 403) {
                 window.location.replace('/Home/Login'); return;
@@ -290,32 +481,60 @@
             var data = await resp.json();
             rcvLoading.style.display = 'none';
 
+            // Update badge and metric for this category
+            var count = Array.isArray(data) ? data.length : 0;
+            if (badges[cat]) badges[cat].textContent = count;
+            if (metricEls[cat]) metricEls[cat].textContent = count;
+
             if (!Array.isArray(data) || data.length === 0) {
+                rcvFoodGrid.classList.remove('allocation-feed-layout');
                 rcvFoodGrid.innerHTML =
                     '<div class="empty-state">' +
                     '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
-                    '<h4>No food requests found</h4>' +
-                    '<p>Use the <strong>Request Food</strong> tab to create your first food request.</p>' +
+                    '<h4>' + escHtml(config.emptyText) + '</h4>' +
+                    '<p>' + escHtml(config.emptyDesc) + '</p>' +
                     '</div>';
-                metricTotal.textContent   = '0';
-                metricPending.textContent = '0';
                 return;
             }
 
-            metricTotal.textContent = data.length;
-            var pending = data.filter(function(f) { return (f.status || '').toLowerCase() === 'pending'; }).length;
-            metricPending.textContent = pending;
-
-            rcvFoodGrid.innerHTML = data.map(buildRequestCard).join('');
+            if (cat === 'Allocated') {
+                rcvFoodGrid.classList.add('allocation-feed-layout');
+                rcvFoodGrid.innerHTML = data.map(function(item) {
+                    if (item.food && item.neededFood) {
+                        return buildMatchedConnectionCard(item);
+                    }
+                    return buildRequestCard(item);
+                }).join('');
+            } else {
+                rcvFoodGrid.classList.remove('allocation-feed-layout');
+                rcvFoodGrid.innerHTML = data.map(buildRequestCard).join('');
+            }
 
         } catch (err) {
             rcvLoading.style.display = 'none';
             rcvError.style.display   = '';
-            rcvError.textContent     = 'Failed to load requests: ' + (err.message || 'Unknown error.');
+            rcvError.textContent     = 'Failed to load ' + cat + ' requests: ' + (err.message || 'Unknown error.');
         }
     }
 
-    document.getElementById('rcvRefreshBtn').addEventListener('click', loadRequests);
+    async function refreshAllCounts() {
+        Object.keys(CATEGORIES).forEach(async function(cat) {
+            try {
+                var resp = await window.FoodBridge.authFetch(CATEGORIES[cat].url);
+                if (resp.ok) {
+                    var data = await resp.json();
+                    var count = Array.isArray(data) ? data.length : 0;
+                    if (badges[cat]) badges[cat].textContent = count;
+                    if (metricEls[cat]) metricEls[cat].textContent = count;
+                }
+            } catch(e) { }
+        });
+    }
+
+    document.getElementById('rcvRefreshBtn').addEventListener('click', function() {
+        loadCategoryRequests(currentCategory);
+        refreshAllCounts();
+    });
 
     // ── Form Submission — POST /NGOs ──────────────────────────────────────────
     var addForm   = document.getElementById('addNeededFoodForm');
@@ -353,7 +572,7 @@
             }
 
             var composedLocation = notes || [perfLoc, city, state].filter(Boolean).join(', ') || null;
-            var parsedDateTime   = reqDate ? new Date(reqDate).toISOString() : new Date().toISOString();
+            var parsedDateTime   = window.FoodBridge.toLocalDateTimeString(reqDate);
 
             setSubmitting(true);
 
@@ -379,14 +598,14 @@
                 var text = await resp.text();
 
                 if (text === 'Added' || (resp.ok && text.toLowerCase().includes('added'))) {
-                    showMsg('Food request submitted successfully! Viewing your requests…', false);
+                    showMsg('Food request submitted successfully! Viewing your pending requests…', false);
                     addForm.reset();
                     if (emailInput && email) emailInput.value = email;
 
                     setTimeout(function () {
-                        showTab('feed');
-                        loadRequests();
-                    }, 1200);
+                        selectCategory('pending');
+                        refreshAllCounts();
+                    }, 1000);
                 } else if (text === 'user not found') {
                     showMsg('User account not found on the server. Please sign in again.', true);
                 } else if (!resp.ok) {
@@ -404,7 +623,8 @@
     }
 
     // ── Init ──────────────────────────────────────────────────────────────────
-    loadRequests();
+    selectCategory('pending');
+    refreshAllCounts();
 
 })();
 </script>
