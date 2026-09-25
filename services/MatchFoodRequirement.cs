@@ -32,22 +32,73 @@ public class MatchFoodRequirement{
             }
         }
         if (minWast != null) {
-            context.MatchedFoods.Add(new MatchedFood(
-                minWast.id,
-                minWast.emailID,
-                minWast.quntity,
-                minWast.donationDateTime,
-                minWast.city,
-                minWast.state,
-                minWast.perfectLocation,
-                nf.id,
-                nf.emailID,
-                nf.requestDateTime,
-                nf.quntity,
-                nf.perfectLocation));
-            nf.status="Allocated";
-            minWast.status="Allocated";
-            await context.SaveChangesAsync();
+            await CreateMatchAndDelivery(minWast, nf);
         }
+    }
+
+    public async Task MatchAvailableFood(Food food)
+    {
+        if (food.status != "pending") return;
+
+        var neededList = await context.NeededFoods
+            .Where(x => x.status == "pending" && x.city == food.city && x.state == food.state)
+            .ToListAsync();
+
+        int min = 999;
+        NeededFood? bestNf = null;
+        foreach (var nf in neededList)
+        {
+            if (food.donationDateTime.HasValue && nf.requestDateTime.HasValue &&
+                (food.donationDateTime.Value - nf.requestDateTime.Value).Duration().TotalHours <= 2)
+            {
+                int m = food.quntity - nf.quntity;
+                if (m >= 0 && min > m)
+                {
+                    bestNf = nf;
+                    min = m;
+                }
+            }
+        }
+
+        if (bestNf != null)
+        {
+            await CreateMatchAndDelivery(food, bestNf);
+        }
+    }
+
+    private async Task CreateMatchAndDelivery(Food minWast, NeededFood nf)
+    {
+        var matchedFood = new MatchedFood(
+            minWast.id,
+            minWast.emailID,
+            minWast.quntity,
+            minWast.donationDateTime,
+            minWast.city,
+            minWast.state,
+            minWast.perfectLocation,
+            nf.id,
+            nf.emailID,
+            nf.requestDateTime,
+            nf.quntity,
+            nf.perfectLocation);
+
+        context.MatchedFoods.Add(matchedFood);
+        nf.status = "Allocated";
+        minWast.status = "Allocated";
+        await context.SaveChangesAsync();
+
+        var delivery = new FoodDelivery(matchedFood.id, minWast.emailID, nf.emailID);
+        context.FoodDeliveries.Add(delivery);
+        await context.SaveChangesAsync();
+
+        context.DeliveryStatusHistories.Add(new DeliveryStatusHistory(
+            delivery.Id,
+            "Allocated",
+            "AwaitingTransporter",
+            "System",
+            "System",
+            $"Automated match: {minWast.quntity} servings of '{minWast.FoodName}' allocated to requirement #{nf.id}."
+        ));
+        await context.SaveChangesAsync();
     }
 }

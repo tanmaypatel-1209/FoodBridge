@@ -27,11 +27,49 @@ public class FoodBridgeDB:DbContext
     {
         get { return Set<MatchedFood>(); }
     }
+    public DbSet<FoodDelivery> FoodDeliveries
+    {
+        get { return Set<FoodDelivery>(); }
+    }
+    public DbSet<DeliveryStatusHistory> DeliveryStatusHistories
+    {
+        get { return Set<DeliveryStatusHistory>(); }
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>().HasIndex(u => u.EmailID).IsUnique();
         modelBuilder.Entity<Food>().HasOne(f=>f.user).WithMany().HasForeignKey(f=>f.emailID);
         modelBuilder.Entity<NeededFood>().HasOne(f=>f.user).WithMany().HasForeignKey(f=>f.emailID);
+
+        modelBuilder.Entity<FoodDelivery>()
+            .HasOne(d => d.MatchedFood)
+            .WithMany()
+            .HasForeignKey(d => d.MatchedFoodId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FoodDelivery>()
+            .HasOne(d => d.Donor)
+            .WithMany()
+            .HasForeignKey(d => d.DonorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<FoodDelivery>()
+            .HasOne(d => d.Receiver)
+            .WithMany()
+            .HasForeignKey(d => d.ReceiverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<FoodDelivery>()
+            .HasOne(d => d.Transporter)
+            .WithMany()
+            .HasForeignKey(d => d.TransporterId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DeliveryStatusHistory>()
+            .HasOne(h => h.Delivery)
+            .WithMany()
+            .HasForeignKey(h => h.DeliveryId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

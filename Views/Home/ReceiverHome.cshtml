@@ -404,12 +404,63 @@
     function buildMatchedConnectionCard(matched) {
         var food = matched.food || {};
         var need = matched.neededFood || {};
+        var del  = matched.delivery || null;
 
         var donorCity = escHtml(food.city || 'Donor');
         var rcvCity   = escHtml(need.city || food.city || 'Recipient');
         var donorLoc  = escHtml([food.perfectLocation, food.city, food.state].filter(Boolean).join(', ') || food.location || '—');
         var rcvLoc    = escHtml([need.perfectLocation, need.city, need.state].filter(Boolean).join(', ') || need.location || '—');
 
+        // ── Build delivery status section first ──────────────────────────────
+        var delHtml = '';
+        if (del) {
+            var stepper = buildReceiverStepperHtml(del.status);
+            var receiptAction = '';
+
+            if (del.status === 'Accepted' || del.status === 'TransporterAssigned') {
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:13px;color:#0369a1;font-weight:600;">' +
+                    '&#128666; A transporter has accepted this delivery and will soon collect the food from the donor.' +
+                    '</div>';
+            } else if (del.status === 'PickupPending' || del.status === 'PickedUp') {
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:13px;color:#c2410c;font-weight:600;">' +
+                    '&#9203; Transporter <strong>' + escHtml(del.transporterName || del.transporterId || '') + '</strong> is collecting/has collected the food from the donor. On the way to you!' +
+                    '</div>';
+            } else if (del.status === 'InTransit') {
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;color:#1e40af;font-weight:600;">' +
+                    '&#128666; Transporter <strong>' + escHtml(del.transporterName || del.transporterId || '') + '</strong> is currently in transit to your location.' +
+                    '</div>';
+            } else if (del.status === 'ReceiverArrived') {
+                receiptAction = '<div class="action-callout-banner banner-receipt">' +
+                    '<div class="banner-content">' +
+                        '<span class="banner-title">&#127970; Transporter Has Arrived With Food!</span>' +
+                        '<span class="banner-desc"><strong>' + escHtml(del.transporterName || del.transporterId || 'Transporter') + '</strong> has arrived at your facility. Please verify and confirm receipt below.</span>' +
+                    '</div>' +
+                    '<button class="btn-delivery-action btn-confirm-received" data-del-id="' + del.deliveryId + '">' +
+                        '&#10003; Confirm Food Received' +
+                    '</button>' +
+                '</div>';
+            } else if (del.status === 'Delivered') {
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;font-weight:700;">' +
+                    '&#10003; Delivery Completed &amp; Verified! Food successfully received by your facility.' +
+                    '</div>';
+            } else {
+                // AwaitingTransporter
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;font-weight:500;">' +
+                    '&#9203; Waiting for a transporter to accept this delivery job.' +
+                    '</div>';
+            }
+
+            delHtml = '<div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-subtle,#e2e8f0);">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+                    '<span style="font-size:12px;font-weight:700;text-transform:uppercase;color:#475569;">Delivery Status: <strong style="color:var(--text-primary,#1e293b);">' + escHtml(del.status) + '</strong></span>' +
+                    '<span style="font-size:12px;color:#64748b;">Transporter: <strong>' + escHtml(del.transporterName || del.transporterId || 'Awaiting Partner') + '</strong></span>' +
+                '</div>' +
+                stepper +
+                receiptAction +
+            '</div>';
+        }
+
+        // ── Build and return the full card HTML ──────────────────────────────
         return '<article class="match-simple-card">' +
             '<div class="match-simple-header">' +
                 '<div class="match-simple-title">' +
@@ -420,7 +471,6 @@
             '</div>' +
 
             '<div class="match-simple-body">' +
-                // Left: Donor
                 '<div class="match-col">' +
                     '<div class="match-col-role role-donor">&#127869; DONOR</div>' +
                     '<h4 class="col-food-title">' + escHtml(food.foodName || food.FoodName || 'Donated Food') + '</h4>' +
@@ -432,17 +482,15 @@
                     '</div>' +
                 '</div>' +
 
-                // Center: Graphical Connector
                 '<div class="match-connector">' +
                     '<div class="connector-line"></div>' +
                     '<div class="connector-icon-circle">&#8646;</div>' +
                     '<div class="connector-label">MATCHED</div>' +
                 '</div>' +
 
-                // Right: Receiver (NGO)
                 '<div class="match-col">' +
-                    '<div class="match-col-role role-receiver">&#127970; RECIPIENT NGO</div>' +
-                    '<h4 class="col-food-title">' + escHtml(need.foodName || 'Requirement') + '</h4>' +
+                    '<div class="match-col-role role-receiver">&#127970; YOUR FACILITY</div>' +
+                    '<h4 class="col-food-title">' + escHtml(need.foodName || 'Your Requirement') + '</h4>' +
                     '<div><span class="col-qty-pill qty-receiver">&#9830; ' + (need.quntity || 0) + ' Servings Needed</span></div>' +
                     '<div class="col-info-list">' +
                         '<div class="col-info-item"><span class="icon">&#9993;</span> ' + escHtml(need.emailID || '—') + '</div>' +
@@ -452,6 +500,8 @@
                 '</div>' +
             '</div>' +
 
+            delHtml +
+
             '<div class="match-simple-footer">' +
                 '<div>Pickup: <strong>' + donorLoc + '</strong> &rarr; Delivery: <strong>' + rcvLoc + '</strong></div>' +
                 (food.emailID ? '<a href="mailto:' + escHtml(food.emailID) + '?subject=FoodBridge%20Allocation%20Handover">&#9993; Coordinate with Donor</a>' : '') +
@@ -459,66 +509,149 @@
         '</article>';
     }
 
-    // ── Feed Loader ──────────────────────────────────────────────────────────
-    async function loadCategoryRequests(cat) {
-        rcvLoading.style.display = '';
-        rcvError.style.display   = 'none';
-        rcvFoodGrid.innerHTML    = '';
+        function buildReceiverStepperHtml(status) {
+            var steps = [
+                { key: 'Matched', label: 'Matched' },
+                { key: 'Accepted', label: 'Transporter' },
+                { key: 'PickedUp', label: 'Picked Up' },
+                { key: 'InTransit', label: 'In Transit' },
+                { key: 'ReceiverArrived', label: 'Arrived' },
+                { key: 'Delivered', label: 'Received' }
+            ];
 
-        var config = CATEGORIES[cat];
-        if (!config) return;
+            var stepOrder = ['AwaitingTransporter', 'Accepted', 'PickupPending', 'PickedUp', 'InTransit', 'ReceiverArrived', 'Delivered'];
+            var currentIdx = stepOrder.indexOf(status);
+            if (currentIdx === -1 && (status === 'TransporterAssigned')) currentIdx = 1;
 
-        try {
-            var resp = await window.FoodBridge.authFetch(config.url);
+            var html = '<div class="delivery-stepper" style="margin: 14px 0 8px 0;">';
+            var pct = Math.max(0, Math.min(100, (currentIdx / (stepOrder.length - 1)) * 100));
+            html += `<div class="stepper-progress-line" style="width:${pct}%;"></div>`;
 
-            if (resp.status === 401 || resp.status === 403) {
-                window.location.replace('/Home/Login'); return;
-            }
-            if (!resp.ok) {
-                throw new Error('Server returned ' + resp.status);
-            }
+            steps.forEach(function (s, idx) {
+                var stepIndex = stepOrder.indexOf(s.key);
+                if (s.key === 'Matched') stepIndex = 0;
+                var isDone = currentIdx >= stepIndex;
+                var isCurr = currentIdx === stepIndex;
+                var cls = isDone ? 'is-done' : (isCurr ? 'is-current' : '');
 
-            var data = await resp.json();
-            rcvLoading.style.display = 'none';
-
-            // Update badge and metric for this category
-            var count = Array.isArray(data) ? data.length : 0;
-            if (badges[cat]) badges[cat].textContent = count;
-            if (metricEls[cat]) metricEls[cat].textContent = count;
-
-            if (!Array.isArray(data) || data.length === 0) {
-                rcvFoodGrid.classList.remove('allocation-feed-layout');
-                rcvFoodGrid.innerHTML =
-                    '<div class="empty-state">' +
-                    '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
-                    '<h4>' + escHtml(config.emptyText) + '</h4>' +
-                    '<p>' + escHtml(config.emptyDesc) + '</p>' +
-                    '</div>';
-                return;
-            }
-
-            if (cat === 'Allocated') {
-                rcvFoodGrid.classList.add('allocation-feed-layout');
-                rcvFoodGrid.innerHTML = data.map(function(item) {
-                    if (item.food && item.neededFood) {
-                        return buildMatchedConnectionCard(item);
-                    }
-                    return buildRequestCard(item);
-                }).join('');
-            } else {
-                rcvFoodGrid.classList.remove('allocation-feed-layout');
-                rcvFoodGrid.innerHTML = data.map(buildRequestCard).join('');
-            }
-
-        } catch (err) {
-            rcvLoading.style.display = 'none';
-            rcvError.style.display   = '';
-            rcvError.textContent     = 'Failed to load ' + cat + ' requests: ' + (err.message || 'Unknown error.');
+                html += `
+                    <div class="stepper-step ${cls}">
+                        <div class="stepper-dot">${isDone ? '&#10003;' : (idx + 1)}</div>
+                        <span class="stepper-step-title">${s.label}</span>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
         }
-    }
+
+        // ── Feed Loader ──────────────────────────────────────────────────────────
+        async function loadCategoryRequests(cat) {
+            rcvLoading.style.display = '';
+            rcvError.style.display   = 'none';
+            rcvFoodGrid.innerHTML    = '';
+
+            var config = CATEGORIES[cat];
+            if (!config) return;
+
+            try {
+                var [resp, delResp] = await Promise.all([
+                    window.FoodBridge.authFetch(config.url),
+                    window.FoodBridge.authFetch('/Receiver/deliveries')
+                ]);
+
+                if (resp.status === 401 || resp.status === 403 || delResp.status === 401) {
+                    window.location.replace('/Home/Login'); return;
+                }
+                if (!resp.ok) {
+                    throw new Error('Server returned ' + resp.status);
+                }
+
+                var data = await resp.json();
+                var deliveries = delResp.ok ? await delResp.json() : [];
+                rcvLoading.style.display = 'none';
+
+                // Update badge and metric for this category
+                var count = Array.isArray(data) ? data.length : 0;
+                if (badges[cat]) badges[cat].textContent = count;
+                if (metricEls[cat]) metricEls[cat].textContent = count;
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    rcvFoodGrid.classList.remove('allocation-feed-layout');
+                    rcvFoodGrid.innerHTML =
+                        '<div class="empty-state">' +
+                        '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
+                        '<h4>' + escHtml(config.emptyText) + '</h4>' +
+                        '<p>' + escHtml(config.emptyDesc) + '</p>' +
+                        '</div>';
+                    return;
+                }
+
+                if (cat === 'Allocated') {
+                    rcvFoodGrid.classList.add('allocation-feed-layout');
+                    rcvFoodGrid.innerHTML = data.map(function(item) {
+                        if (item.food && item.neededFood) {
+                            // Match delivery using receiverId (camelCase JSON) or foodId
+                            var del = deliveries.find(function (d) {
+                                return (item.neededFood && d.receiverId === item.neededFood.emailID) || (item.food && d.foodId === item.food.id);
+                            }) || null;
+                            item.delivery = del;
+                            return buildMatchedConnectionCard(item);
+                        }
+                        return buildRequestCard(item);
+                    }).join('');
+
+                    // Bind confirm received buttons
+                    rcvFoodGrid.querySelectorAll('.btn-confirm-received').forEach(function(btn) {
+                        btn.addEventListener('click', async function() {
+                            var delId = btn.getAttribute('data-del-id');
+                            if (!delId) return;
+
+                            var notes = prompt('Add optional delivery receipt notes (or press OK to confirm):') || '';
+                            btn.disabled = true;
+                            btn.innerHTML = 'Confirming receipt… <span class="spinner-dot" aria-hidden="true"></span>';
+
+                            try {
+                                var cResp = await window.FoodBridge.authFetch('/Receiver/deliveries/' + delId + '/confirm-received', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ Notes: notes })
+                                });
+                                var resJson = await cResp.json().catch(function() { return {}; });
+
+                                if (!cResp.ok) {
+                                    alert(resJson.message || 'Failed to confirm receipt.');
+                                    btn.disabled = false;
+                                    btn.innerHTML = '&#10003; Confirm Food Received';
+                                    return;
+                                }
+
+                                alert('Food delivery receipt confirmed successfully! Thank you.');
+                                loadCategoryRequests(currentCategory);
+                                refreshAllCounts();
+
+                            } catch (cErr) {
+                                alert('Network error: ' + cErr.message);
+                                btn.disabled = false;
+                                btn.innerHTML = '&#10003; Confirm Food Received';
+                            }
+                        });
+                    });
+
+                } else {
+                    rcvFoodGrid.classList.remove('allocation-feed-layout');
+                    rcvFoodGrid.innerHTML = data.map(buildRequestCard).join('');
+                }
+
+            } catch (err) {
+                rcvLoading.style.display = 'none';
+                rcvError.style.display   = '';
+                rcvError.textContent     = 'Failed to load ' + cat + ' requests: ' + (err.message || 'Unknown error.');
+            }
+        }
 
     async function refreshAllCounts() {
-        Object.keys(CATEGORIES).forEach(async function(cat) {
+        var promises = Object.keys(CATEGORIES).map(async function(cat) {
             try {
                 var resp = await window.FoodBridge.authFetch(CATEGORIES[cat].url);
                 if (resp.ok) {
@@ -529,7 +662,72 @@
                 }
             } catch(e) { }
         });
+        return Promise.all(promises);
     }
+
+    // ── Toast Notification System ─────────────────────────────────────────────
+    function showToast(message, type) {
+        var toastId = 'rcvToastContainer';
+        var container = document.getElementById(toastId);
+        if (!container) {
+            container = document.createElement('div');
+            container.id = toastId;
+            container.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(container);
+        }
+        var toast = document.createElement('div');
+        var bgColor = type === 'success' ? '#166534' : type === 'warning' ? '#92400e' : '#1e40af';
+        var icon    = type === 'success' ? '&#10003;' : type === 'warning' ? '&#9888;' : '&#128666;';
+        toast.style.cssText = 'background:' + bgColor + ';color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 24px rgba(0,0,0,0.18);display:flex;align-items:center;gap:10px;min-width:280px;max-width:400px;';
+        toast.innerHTML = '<span style="font-size:18px;">' + icon + '</span><span>' + message + '</span>';
+        container.appendChild(toast);
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.4s';
+            setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+        }, 5000);
+    }
+
+    // ── Auto-Polling for delivery status changes ──────────────────────────────
+    var _lastDeliveryStatuses = {};
+    var _rcvAutoRefreshTimer = null;
+
+    function startReceiverAutoRefresh() {
+        if (_rcvAutoRefreshTimer) return;
+        _rcvAutoRefreshTimer = setInterval(async function() {
+            try {
+                var delResp = await window.FoodBridge.authFetch('/Receiver/deliveries');
+                if (!delResp.ok) return;
+                var deliveries = await delResp.json();
+                var changed = false;
+                deliveries.forEach(function(d) {
+                    var prevStatus = _lastDeliveryStatuses[d.deliveryId];
+                    if (prevStatus !== undefined && prevStatus !== d.status) {
+                        changed = true;
+                        if (d.status === 'Accepted') {
+                            showToast('&#128666; A transporter accepted the delivery for your food request!', 'info');
+                        } else if (d.status === 'InTransit') {
+                            showToast('&#128666; Your food is in transit! Transporter ' + (d.transporterName || '') + ' is on the way.', 'info');
+                        } else if (d.status === 'ReceiverArrived') {
+                            showToast('&#127970; Transporter has arrived at your location! Please confirm food receipt.', 'warning');
+                        } else if (d.status === 'Delivered') {
+                            showToast('&#127881; Food delivery completed and verified! Thank you.', 'success');
+                        }
+                    }
+                    _lastDeliveryStatuses[d.deliveryId] = d.status;
+                });
+                if (changed && currentCategory === 'Allocated') {
+                    loadCategoryRequests('Allocated');
+                } else if (changed) {
+                    refreshAllCounts();
+                }
+            } catch(e) { }
+        }, 10000);
+    }
+
+    window.addEventListener('beforeunload', function() {
+        if (_rcvAutoRefreshTimer) clearInterval(_rcvAutoRefreshTimer);
+    });
 
     document.getElementById('rcvRefreshBtn').addEventListener('click', function() {
         loadCategoryRequests(currentCategory);
@@ -625,6 +823,7 @@
     // ── Init ──────────────────────────────────────────────────────────────────
     selectCategory('pending');
     refreshAllCounts();
+    startReceiverAutoRefresh();
 
 })();
 </script>

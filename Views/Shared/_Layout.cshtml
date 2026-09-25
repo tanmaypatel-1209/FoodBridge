@@ -41,6 +41,9 @@
                 <a class="nav-link receiver-nav-item @(ViewData["Title"]?.ToString() == "Request Food" ? "active" : "")" asp-controller="Home" asp-action="RequestFood" style="display:none;">
                     Request Food
                 </a>
+                <a class="nav-link transporter-nav-item @(ViewData["Title"]?.ToString() == "Transporter Dashboard" ? "active" : "")" asp-controller="Home" asp-action="TransporterHome" style="display:none;">
+                    Transporter Dashboard
+                </a>
                 <a class="nav-link @(ViewData["Title"]?.ToString() == "Privacy Policy" ? "active" : "")" asp-controller="Home" asp-action="Privacy">
                     Privacy
                 </a>
@@ -77,6 +80,7 @@
                         <li class="donor-nav-item" style="display:none;"><a asp-controller="Home" asp-action="DonorPortal">Donor Portal</a></li>
                         <li class="receiver-nav-item" style="display:none;"><a asp-controller="Home" asp-action="ReceiverHome">Receiver Dashboard</a></li>
                         <li class="receiver-nav-item" style="display:none;"><a asp-controller="Home" asp-action="RequestFood">Request Food</a></li>
+                        <li class="transporter-nav-item" style="display:none;"><a asp-controller="Home" asp-action="TransporterHome">Transporter Dashboard</a></li>
                         <li><a asp-controller="Home" asp-action="Privacy">Privacy Policy</a></li>
                     </ul>
                 </div>

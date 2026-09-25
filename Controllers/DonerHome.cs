@@ -15,10 +15,12 @@ public class DonerHome : ControllerBase
 {
     private readonly FoodBridgeDB context;
     private readonly wastfood wf;
-    public DonerHome(FoodBridgeDB context, wastfood wf)
+    private readonly MatchFoodRequirement match;
+    public DonerHome(FoodBridgeDB context, wastfood wf, MatchFoodRequirement match)
     {
         this.wf = wf;
         this.context = context;
+        this.match = match;
     }
 
     [HttpPost]
@@ -60,6 +62,7 @@ public class DonerHome : ControllerBase
         );
         context.Foods.Add(food);
         await context.SaveChangesAsync();
+        await match.MatchAvailableFood(food);
         return Ok("Food added");
     }
     [HttpGet("display")]

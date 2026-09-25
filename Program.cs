@@ -16,6 +16,7 @@ public class Program
         builder.Services.AddSingleton<JWTCreate>();
         builder.Services.AddScoped<MatchFoodRequirement>();
         builder.Services.AddScoped<wastfood>();
+        builder.Services.AddScoped<DeliveryService>();
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -41,29 +42,46 @@ public class Program
                 };
             });
         string connectionString =
-            "Server=mysql;Port=3306;Database=foodbridgedb;User=root;Password=Tanmay@1907;";
+            builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? "Data Source=foodbridge.db";
 
-        builder.Services.AddDbContext<FoodBridgeDB>(options =>
-            options.UseMySql(
-                connectionString,
-                new MySqlServerVersion(new Version(8, 4, 0))
-            )
-        );
+        bool isSqlite = connectionString.Contains(".db", StringComparison.OrdinalIgnoreCase) ||
+                        connectionString.Contains("Data Source=", StringComparison.OrdinalIgnoreCase);
+
+        if (isSqlite)
+        {
+            builder.Services.AddDbContext<FoodBridgeDB>(options =>
+                options.UseSqlite(connectionString)
+            );
+        }
+        else
+        {
+            builder.Services.AddDbContext<FoodBridgeDB>(options =>
+                options.UseMySql(
+                    connectionString,
+                    new MySqlServerVersion(new Version(8, 4, 0))
+                )
+            );
+        }
+
         var app = builder.Build();
 
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<FoodBridgeDB>();
-            for (int i = 0; i < 15; i++)
+            for (int i = 0; i < 5; i++)
             {
                 try
                 {
                     db.Database.EnsureCreated();
+                    DatabaseSeeder.Seed(db);
+                    Console.WriteLine("Database connected, verified, and seeded successfully.");
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Thread.Sleep(2000);
+                    Console.WriteLine($"Database connection attempt {i + 1} failed: {ex.Message}");
+                    if (i < 4) Thread.Sleep(2000);
                 }
             }
         }

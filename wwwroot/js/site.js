@@ -93,6 +93,11 @@ window.FoodBridge.isReceiver = function () {
     return r === 'receiver' || r === 'ngo';
 };
 
+window.FoodBridge.isTransporter = function () {
+    const role = window.FoodBridge.getUserRole();
+    return String(role).trim().toLowerCase() === 'transporter';
+};
+
 // Authenticated Fetch wrapper
 window.FoodBridge.authFetch = function (url, options = {}) {
     options.headers = options.headers || {};
@@ -172,6 +177,12 @@ window.FoodBridge.updateAuthUI = function () {
     // Toggle receiver link visibility
     document.querySelectorAll('.receiver-nav-item').forEach(link => {
         link.style.display = isReceiver ? '' : 'none';
+    });
+
+    // Toggle transporter link visibility
+    const isTransporter = window.FoodBridge.isTransporter();
+    document.querySelectorAll('.transporter-nav-item').forEach(link => {
+        link.style.display = isTransporter ? '' : 'none';
     });
 
     if (navActions) {
@@ -309,6 +320,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             e.preventDefault();
             window.FoodBridge.navigateWithAuth('/Home/RequestFood');
+        });
+    });
+
+    // Attach click handler to Transporter Home links for Auth routing
+    document.querySelectorAll('a[href="/Home/TransporterHome"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const token = window.FoodBridge.getToken();
+            if (!token) {
+                e.preventDefault();
+                window.location.href = '/Home/Login';
+                return;
+            }
+            if (!window.FoodBridge.isTransporter()) {
+                e.preventDefault();
+                alert('Access restricted: Only registered Transporters can access the Transporter Dashboard.');
+                return;
+            }
+            e.preventDefault();
+            window.FoodBridge.navigateWithAuth('/Home/TransporterHome');
         });
     });
 

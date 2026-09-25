@@ -1,0 +1,571 @@
+@{
+    ViewData["Title"] = "Transporter Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-container" id="transporterHomePage">
+
+    <!-- Hero / Greeting -->
+    <div class="donor-hero transporter-hero" id="transporterHeroSection">
+        <div class="donor-hero-text">
+            <span class="tag-pill transporter-pill">Transporter Fleet</span>
+            <h1 id="transporterGreeting">Welcome, Delivery Partner.</h1>
+            <p>
+                Connect Donors with Receivers. Accept pickup jobs, track real-time delivery transitions, and record secure handovers.
+            </p>
+        </div>
+        <div class="donor-metrics">
+            <div class="metric-card metric-card-interactive" id="mCardAvailable" title="View Available Deliveries">
+                <span class="metric-value" style="color:#f59e0b;" id="metricAvailable">—</span>
+                <span class="metric-label">Available Jobs</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="mCardActive" title="View Active Deliveries">
+                <span class="metric-value" style="color:#38bdf8;" id="metricActive">—</span>
+                <span class="metric-label">My Active Trips</span>
+            </div>
+            <div class="metric-card metric-card-interactive" id="mCardCompleted" title="View Completed Trips">
+                <span class="metric-value" style="color:#4ade80;" id="metricCompleted">—</span>
+                <span class="metric-label">Completed</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="donor-nav-tabs" role="tablist" aria-label="Transporter delivery categories">
+        <button class="tab-btn active" id="tabAvailable" data-category="available" role="tab" aria-selected="true">
+            <span class="tab-icon" aria-hidden="true">&#128230;</span> Available Deliveries
+            <span class="tab-count-badge" id="badgeAvailable">0</span>
+        </button>
+        <button class="tab-btn" id="tabActive" data-category="active" role="tab" aria-selected="false">
+            <span class="tab-icon" aria-hidden="true">&#128666;</span> My Active Trips
+            <span class="tab-count-badge" id="badgeActive">0</span>
+        </button>
+        <button class="tab-btn" id="tabCompleted" data-category="completed" role="tab" aria-selected="false">
+            <span class="tab-icon" aria-hidden="true">&#10003;</span> Completed Trips
+            <span class="tab-count-badge" id="badgeCompleted">0</span>
+        </button>
+        <button id="refreshTransporterBtn" class="btn-secondary-custom" type="button" style="margin-left:auto;">
+            &#8635; Refresh Feed
+        </button>
+    </div>
+
+    <!-- Feed Container -->
+    <div id="transporterFeedPanel">
+        <div class="donor-feed-section">
+            <div class="feed-header">
+                <div>
+                    <h2 id="transporterCategoryHeading" style="font-size:20px;margin:0 0 4px 0;">Available Food Deliveries</h2>
+                    <p id="transporterCategorySubtitle">Ready for pickup from donors and immediate transport to recipient shelters.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span id="liveSyncIndicator" class="portion-pill" style="background:#f1f5f9; color:#475569; font-size:12px;">Live Sync Active</span>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="transporterLoading" class="feed-state" aria-live="polite" style="display:none;">
+                <div class="feed-loading-inner">
+                    <span class="spinner-dot" style="display:inline-block;border-color:rgba(0,0,0,.15);border-top-color:#4f46e5;width:22px;height:22px;" aria-hidden="true"></span>
+                    <span>Synchronizing deliveries…</span>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="transporterError" class="feed-state is-error" role="alert" aria-live="assertive" style="display:none;"></div>
+
+            <!-- Delivery Grid -->
+            <div id="transporterGrid" class="food-grid" aria-label="Transporter delivery cards">
+                <!-- Cards rendered by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audit Trail & Timeline Modal -->
+<div id="deliveryAuditModal" class="donor-portal-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalAuditTitle" style="display:none;">
+    <div class="donor-portal-modal" style="max-width:680px;">
+        <button id="closeAuditModalBtn" class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 id="modalAuditTitle" class="card-title mb-0" style="font-size:20px; font-weight:700;">Delivery Tracking & Audit Trail</h3>
+            <span id="modalAuditStatusBadge" class="delivery-status-badge status-awaiting">Status</span>
+        </div>
+        <p class="card-subtitle text-muted mb-3" id="modalAuditSubtitle">Delivery Reference #...</p>
+
+        <!-- Stepper Visualizer -->
+        <div id="modalAuditStepper" class="delivery-stepper mb-4">
+            <!-- Populated dynamically -->
+        </div>
+
+        <h6 style="font-size:13px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:10px;">Verification & Handover Event Log</h6>
+        <div id="modalAuditHistoryList" class="audit-history-list">
+            <!-- Populated dynamically -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    // Route guard: only Transporters allowed
+    if (!window.FoodBridge || !window.FoodBridge.getToken()) {
+        window.location.replace('/Home/Login');
+        return;
+    }
+    if (!window.FoodBridge.isTransporter()) {
+        alert('Access restricted: Only registered Transporters can access this dashboard.');
+        window.location.replace('/Home/Login');
+        return;
+    }
+
+    var currentTab = 'available';
+    var availableList = [];
+    var myList = [];
+    var autoRefreshInterval = null;
+
+    var greetingEl = document.getElementById('transporterGreeting');
+    var user = window.FoodBridge.getUser();
+    if (greetingEl && user && user.name) {
+        greetingEl.textContent = 'Welcome, ' + user.name + '.';
+    }
+
+    var badgeAvailable = document.getElementById('badgeAvailable');
+    var badgeActive    = document.getElementById('badgeActive');
+    var badgeCompleted = document.getElementById('badgeCompleted');
+    var metricAvailable = document.getElementById('metricAvailable');
+    var metricActive    = document.getElementById('metricActive');
+    var metricCompleted = document.getElementById('metricCompleted');
+
+    var gridEl      = document.getElementById('transporterGrid');
+    var loadingEl   = document.getElementById('transporterLoading');
+    var errorEl     = document.getElementById('transporterError');
+    var headingEl   = document.getElementById('transporterCategoryHeading');
+    var subtitleEl  = document.getElementById('transporterCategorySubtitle');
+
+    function getStatusClass(status) {
+        if (!status) return 'status-awaiting';
+        var s = status.toLowerCase();
+        if (s === 'awaitingtransporter') return 'status-awaiting';
+        if (s === 'accepted' || s === 'transporterassigned') return 'status-accepted';
+        if (s === 'pickuppending') return 'status-pickuppending';
+        if (s === 'pickedup' || s === 'intransit') return 'status-intransit';
+        if (s === 'receiverarrived') return 'status-receiverarrived';
+        if (s === 'delivered') return 'status-delivered';
+        if (s === 'cancelled') return 'status-cancelled';
+        return 'status-awaiting';
+    }
+
+    function formatDateTime(dtStr) {
+        if (!dtStr) return 'N/A';
+        try {
+            var d = new Date(dtStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + 
+                   d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        } catch {
+            return dtStr;
+        }
+    }
+
+    async function fetchDeliveries() {
+        errorEl.style.display = 'none';
+
+        try {
+            var [resAvail, resMy] = await Promise.all([
+                window.FoodBridge.authFetch('/Transporter/available'),
+                window.FoodBridge.authFetch('/Transporter/my-deliveries')
+            ]);
+
+            if (resAvail.status === 401 || resMy.status === 401) {
+                window.location.replace('/Home/Login');
+                return;
+            }
+
+            if (!resAvail.ok || !resMy.ok) {
+                throw new Error('Failed to load deliveries from server.');
+            }
+
+            availableList = await resAvail.json();
+            myList        = await resMy.json();
+
+            updateCounts();
+            renderCurrentView();
+
+        } catch (err) {
+            console.error(err);
+            errorEl.textContent = err.message || 'Error syncing deliveries. Please retry.';
+            errorEl.style.display = 'block';
+        } finally {
+            loadingEl.style.display = 'none';
+        }
+    }
+
+    function updateCounts() {
+        var activeJobs = myList.filter(function (d) { return d.status !== 'Delivered' && d.status !== 'Cancelled'; });
+        var completedJobs = myList.filter(function (d) { return d.status === 'Delivered'; });
+
+        badgeAvailable.textContent = availableList.length;
+        metricAvailable.textContent = availableList.length;
+
+        badgeActive.textContent = activeJobs.length;
+        metricActive.textContent = activeJobs.length;
+
+        badgeCompleted.textContent = completedJobs.length;
+        metricCompleted.textContent = completedJobs.length;
+    }
+
+    function renderCurrentView() {
+        gridEl.innerHTML = '';
+
+        var listToRender = [];
+        if (currentTab === 'available') {
+            headingEl.textContent = 'Available Food Deliveries';
+            subtitleEl.textContent = 'Matched food jobs waiting for an assigned delivery partner. Tap Accept to claim.';
+            listToRender = availableList;
+        } else if (currentTab === 'active') {
+            headingEl.textContent = 'My Active Delivery Trips';
+            subtitleEl.textContent = 'Active pickup and drop-off jobs. Complete each progression step in the delivery timeline.';
+            listToRender = myList.filter(function (d) { return d.status !== 'Delivered' && d.status !== 'Cancelled'; });
+        } else {
+            headingEl.textContent = 'Completed Delivery Trips';
+            subtitleEl.textContent = 'Successfully transported and verified food donations delivered to recipient shelters.';
+            listToRender = myList.filter(function (d) { return d.status === 'Delivered'; });
+        }
+
+        if (listToRender.length === 0) {
+            gridEl.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding: 48px 20px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
+                    <div style="font-size:36px; margin-bottom:12px;">&#128230;</div>
+                    <h4 style="margin:0 0 6px 0; color:#334155;">No ${currentTab} deliveries found</h4>
+                    <p style="margin:0; font-size:14px; color:#64748b;">${currentTab === 'available' ? 'All matched deliveries are currently assigned. Check back shortly for new donor matches!' : 'No delivery trips found in this category.'}</p>
+                </div>
+            `;
+            return;
+        }
+
+        listToRender.forEach(function (d) {
+            var card = createDeliveryCard(d);
+            gridEl.appendChild(card);
+        });
+    }
+
+    function createDeliveryCard(d) {
+        var card = document.createElement('div');
+        card.className = 'delivery-job-card';
+
+        var statusClass = getStatusClass(d.status);
+        var itemsList = Array.isArray(d.items) ? d.items.join(', ') : (d.items || 'Meal portions');
+
+        var actionHtml = '';
+        if (currentTab === 'available') {
+            actionHtml = `
+                <div class="delivery-actions-area">
+                    <button class="btn-delivery-action btn-accept-job" data-id="${d.deliveryId}">
+                        <span>&#10003; Accept Delivery</span>
+                    </button>
+                    <button class="btn-secondary-custom btn-view-audit" data-id="${d.deliveryId}" style="font-size:13px; padding:6px 12px;">
+                        Audit Log
+                    </button>
+                </div>
+            `;
+        } else {
+            var stepBtn = '';
+            if (d.status === 'Accepted' || d.status === 'TransporterAssigned') {
+                stepBtn = `
+                    <button class="btn-delivery-action btn-pickup-arrived" data-id="${d.deliveryId}">
+                        <span>&#128205; I Have Arrived at Pickup</span>
+                    </button>
+                `;
+            } else if (d.status === 'PickupPending') {
+                stepBtn = `
+                    <div style="font-size:13px; color:#c2410c; background:#ffedd5; padding:8px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                        <span>&#9203; Arrived at Pickup — Waiting for Donor Food Handover Confirmation</span>
+                    </div>
+                `;
+            } else if (d.status === 'PickedUp') {
+                stepBtn = `
+                    <button class="btn-delivery-action btn-start-transit" data-id="${d.deliveryId}">
+                        <span>&#128666; Start Delivery (In Transit)</span>
+                    </button>
+                `;
+            } else if (d.status === 'InTransit') {
+                stepBtn = `
+                    <button class="btn-delivery-action btn-receiver-arrived" data-id="${d.deliveryId}">
+                        <span>&#127970; I Have Arrived at Receiver</span>
+                    </button>
+                `;
+            } else if (d.status === 'ReceiverArrived') {
+                stepBtn = `
+                    <div style="font-size:13px; color:#6b21a8; background:#f3e8ff; padding:8px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:600;">
+                        <span>&#9203; Arrived at Destination — Waiting for Receiver Receipt Confirmation</span>
+                    </div>
+                `;
+            } else if (d.status === 'Delivered') {
+                stepBtn = `
+                    <div style="font-size:13px; color:#166534; background:#dcfce7; padding:8px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:6px; font-weight:700;">
+                        <span>&#10003; Successfully Delivered & Verified</span>
+                    </div>
+                `;
+            }
+
+            actionHtml = `
+                <div class="delivery-actions-area">
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                        ${stepBtn}
+                    </div>
+                    <button class="btn-secondary-custom btn-view-audit" data-id="${d.deliveryId}" style="font-size:13px; padding:6px 12px;">
+                        View Timeline
+                    </button>
+                </div>
+            `;
+        }
+
+        // Stepper for active card
+        var stepperHtml = buildStepperHtml(d.status);
+
+        card.innerHTML = `
+            <div class="delivery-job-header">
+                <span class="delivery-id-badge">Trip #${d.deliveryId}</span>
+                <span class="delivery-status-badge ${statusClass}">${d.status}</span>
+            </div>
+
+            <div class="delivery-food-info">
+                <span class="delivery-food-title">${escapeHtml(d.foodName)}</span>
+                <div class="delivery-food-meta">
+                    <span class="portion-pill" style="font-weight:700;">${d.quantity} Portions</span>
+                    <span style="font-size:12px; color:#64748b;">Items: ${escapeHtml(itemsList)}</span>
+                </div>
+            </div>
+
+            <div class="delivery-route-grid">
+                <div class="route-stop">
+                    <span class="route-stop-type pickup">&#128205; Pickup from Donor</span>
+                    <span class="route-stop-name">${escapeHtml(d.donorName || d.donorId)}</span>
+                    <span class="route-stop-location">${escapeHtml(d.pickupLocation || '')}, ${escapeHtml(d.pickupCity || '')}</span>
+                </div>
+                <div class="route-arrow">&rarr;</div>
+                <div class="route-stop">
+                    <span class="route-stop-type dropoff">&#127970; Deliver to Receiver</span>
+                    <span class="route-stop-name">${escapeHtml(d.receiverName || d.receiverId)}</span>
+                    <span class="route-stop-location">${escapeHtml(d.deliveryLocation || '')}, ${escapeHtml(d.deliveryCity || '')}</span>
+                </div>
+            </div>
+
+            ${stepperHtml}
+
+            ${actionHtml}
+        `;
+
+        // Bind Actions
+        var acceptBtn = card.querySelector('.btn-accept-job');
+        if (acceptBtn) {
+            acceptBtn.addEventListener('click', function () {
+                handleDeliveryAction(d.deliveryId, '/Transporter/deliveries/' + d.deliveryId + '/accept', acceptBtn, 'Claiming trip…');
+            });
+        }
+
+        var arrivedPickupBtn = card.querySelector('.btn-pickup-arrived');
+        if (arrivedPickupBtn) {
+            arrivedPickupBtn.addEventListener('click', function () {
+                handleDeliveryAction(d.deliveryId, '/Transporter/deliveries/' + d.deliveryId + '/arrived-pickup', arrivedPickupBtn, 'Updating…');
+            });
+        }
+
+        var startTransitBtn = card.querySelector('.btn-start-transit');
+        if (startTransitBtn) {
+            startTransitBtn.addEventListener('click', function () {
+                handleDeliveryAction(d.deliveryId, '/Transporter/deliveries/' + d.deliveryId + '/start', startTransitBtn, 'Starting transit…');
+            });
+        }
+
+        var arrivedReceiverBtn = card.querySelector('.btn-receiver-arrived');
+        if (arrivedReceiverBtn) {
+            arrivedReceiverBtn.addEventListener('click', function () {
+                handleDeliveryAction(d.deliveryId, '/Transporter/deliveries/' + d.deliveryId + '/arrived-receiver', arrivedReceiverBtn, 'Updating…');
+            });
+        }
+
+        var viewAuditBtn = card.querySelector('.btn-view-audit');
+        if (viewAuditBtn) {
+            viewAuditBtn.addEventListener('click', function () {
+                openAuditModal(d);
+            });
+        }
+
+        return card;
+    }
+
+    function buildStepperHtml(status) {
+        var steps = [
+            { key: 'Accepted', label: 'Accepted' },
+            { key: 'PickupPending', label: 'At Pickup' },
+            { key: 'PickedUp', label: 'Handover' },
+            { key: 'InTransit', label: 'In Transit' },
+            { key: 'ReceiverArrived', label: 'At Receiver' },
+            { key: 'Delivered', label: 'Delivered' }
+        ];
+
+        var stepOrder = ['AwaitingTransporter', 'Accepted', 'PickupPending', 'PickedUp', 'InTransit', 'ReceiverArrived', 'Delivered'];
+        var currentIdx = stepOrder.indexOf(status);
+        if (currentIdx === -1 && (status === 'TransporterAssigned')) currentIdx = 1;
+
+        var html = '<div class="delivery-stepper">';
+        var pct = Math.max(0, Math.min(100, (currentIdx / (stepOrder.length - 1)) * 100));
+        html += `<div class="stepper-progress-line" style="width:${pct}%;"></div>`;
+
+        steps.forEach(function (s, idx) {
+            var stepIndex = stepOrder.indexOf(s.key);
+            var isDone = currentIdx >= stepIndex;
+            var isCurr = currentIdx === stepIndex;
+            var cls = isDone ? 'is-done' : (isCurr ? 'is-current' : '');
+
+            html += `
+                <div class="stepper-step ${cls}">
+                    <div class="stepper-dot">${isDone ? '&#10003;' : (idx + 1)}</div>
+                    <span class="stepper-step-title">${s.label}</span>
+                </div>
+            `;
+        });
+        html += '</div>';
+        return html;
+    }
+
+    async function handleDeliveryAction(deliveryId, url, btnEl, loadingText) {
+        var origHtml = btnEl.innerHTML;
+        btnEl.disabled = true;
+        btnEl.innerHTML = `<span>${loadingText}</span> <span class="spinner-dot" aria-hidden="true"></span>`;
+
+        try {
+            var response = await window.FoodBridge.authFetch(url, { method: 'POST' });
+            var data = await response.json().catch(function () { return {}; });
+
+            if (!response.ok) {
+                alert(data.message || 'Operation failed. Please try again.');
+                return;
+            }
+
+            // Refresh delivery lists
+            await fetchDeliveries();
+
+            if (url.includes('/accept')) {
+                // Switch to active tab on accept
+                switchTab('active');
+            }
+
+        } catch (err) {
+            alert(err.message || 'Network error.');
+        } finally {
+            btnEl.disabled = false;
+            btnEl.innerHTML = origHtml;
+        }
+    }
+
+    function openAuditModal(delivery) {
+        var modal = document.getElementById('deliveryAuditModal');
+        var titleEl = document.getElementById('modalAuditTitle');
+        var subtitleEl = document.getElementById('modalAuditSubtitle');
+        var badgeEl = document.getElementById('modalAuditStatusBadge');
+        var stepperEl = document.getElementById('modalAuditStepper');
+        var historyListEl = document.getElementById('modalAuditHistoryList');
+
+        titleEl.textContent = 'Delivery #' + delivery.deliveryId + ' — ' + delivery.foodName;
+        subtitleEl.textContent = 'Donor: ' + delivery.donorName + ' (' + delivery.pickupLocation + ') → Receiver: ' + delivery.receiverName + ' (' + delivery.deliveryLocation + ')';
+        badgeEl.textContent = delivery.status;
+        badgeEl.className = 'delivery-status-badge ' + getStatusClass(delivery.status);
+
+        stepperEl.innerHTML = buildStepperHtml(delivery.status);
+
+        historyListEl.innerHTML = '';
+        if (!delivery.history || delivery.history.length === 0) {
+            historyListEl.innerHTML = '<p class="text-muted" style="font-size:13px; margin:10px 0;">No audit records logged yet.</p>';
+        } else {
+            delivery.history.forEach(function (h) {
+                var item = document.createElement('div');
+                item.className = 'audit-history-item';
+                item.innerHTML = `
+                    <span class="audit-history-icon">&#9679;</span>
+                    <div class="audit-history-body">
+                        <div class="audit-history-header">
+                            <span class="audit-history-title">${escapeHtml(h.fromStatus)} &rarr; ${escapeHtml(h.toStatus)}</span>
+                            <span class="audit-history-time">${formatDateTime(h.changedAt)}</span>
+                        </div>
+                        <div style="font-size:12px; color:#475569;">
+                            Updated by: <strong>${escapeHtml(h.changedByUserRole)}</strong> (${escapeHtml(h.changedByUserId)})
+                        </div>
+                        ${h.notes ? `<div class="audit-history-notes">${escapeHtml(h.notes)}</div>` : ''}
+                    </div>
+                `;
+                historyListEl.appendChild(item);
+            });
+        }
+
+        modal.style.display = 'block';
+        modal.classList.add('is-open');
+    }
+
+    document.getElementById('closeAuditModalBtn').addEventListener('click', function () {
+        var modal = document.getElementById('deliveryAuditModal');
+        modal.style.display = 'none';
+        modal.classList.remove('is-open');
+    });
+
+    document.getElementById('deliveryAuditModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+            this.classList.remove('is-open');
+        }
+    });
+
+    function switchTab(cat) {
+        currentTab = cat;
+        document.querySelectorAll('.tab-btn').forEach(function (btn) {
+            btn.classList.remove('active');
+            btn.setAttribute('aria-selected', 'false');
+        });
+
+        if (cat === 'available') {
+            document.getElementById('tabAvailable').classList.add('active');
+            document.getElementById('tabAvailable').setAttribute('aria-selected', 'true');
+        } else if (cat === 'active') {
+            document.getElementById('tabActive').classList.add('active');
+            document.getElementById('tabActive').setAttribute('aria-selected', 'true');
+        } else if (cat === 'completed') {
+            document.getElementById('tabCompleted').classList.add('active');
+            document.getElementById('tabCompleted').setAttribute('aria-selected', 'true');
+        }
+        renderCurrentView();
+    }
+
+    document.getElementById('tabAvailable').addEventListener('click', function () { switchTab('available'); });
+    document.getElementById('tabActive').addEventListener('click', function () { switchTab('active'); });
+    document.getElementById('tabCompleted').addEventListener('click', function () { switchTab('completed'); });
+
+    document.getElementById('mCardAvailable').addEventListener('click', function () { switchTab('available'); });
+    document.getElementById('mCardActive').addEventListener('click', function () { switchTab('active'); });
+    document.getElementById('mCardCompleted').addEventListener('click', function () { switchTab('completed'); });
+
+    document.getElementById('refreshTransporterBtn').addEventListener('click', function () {
+        loadingEl.style.display = 'block';
+        fetchDeliveries();
+    });
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+        return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+    }
+
+    // Initial fetch
+    loadingEl.style.display = 'block';
+    fetchDeliveries();
+
+    // Auto-refresh interval (every 8s) to track handovers and deliveries in real time
+    autoRefreshInterval = setInterval(fetchDeliveries, 8000);
+
+    window.addEventListener('beforeunload', function () {
+        if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    });
+
+})();
+</script>
+}

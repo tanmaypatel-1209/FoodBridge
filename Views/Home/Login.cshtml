@@ -110,8 +110,9 @@
     // If already authenticated, redirect by role
     if (window.FoodBridge && window.FoodBridge.getToken()) {
         var existingRole = window.FoodBridge.getUserRole();
-        if (existingRole === 'Donor')    { window.location.replace('/Home/DonerHome');    return; }
-        if (existingRole === 'Receiver') { window.location.replace('/Home/ReceiverHome'); return; }
+        if (existingRole === 'Donor')       { window.location.replace('/Home/DonerHome');       return; }
+        if (existingRole === 'Receiver')    { window.location.replace('/Home/ReceiverHome');    return; }
+        if (existingRole === 'Transporter') { window.location.replace('/Home/TransporterHome'); return; }
     }
 
     // Password toggle
@@ -204,8 +205,9 @@
             showMsg('Login successful! Redirecting…', false);
 
             setTimeout(function () {
-                if (role === 'Donor')    { window.location.href = '/Home/DonerHome'; }
-                else if (role === 'Receiver') { window.location.href = '/Home/ReceiverHome'; }
+                if (role === 'Donor')             { window.location.href = '/Home/DonerHome'; }
+                else if (role === 'Receiver')     { window.location.href = '/Home/ReceiverHome'; }
+                else if (role === 'Transporter')  { window.location.href = '/Home/TransporterHome'; }
                 else { window.location.href = '/Home/Index'; }
             }, 600);
 
