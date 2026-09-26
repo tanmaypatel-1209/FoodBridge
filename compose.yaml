@@ -16,6 +16,7 @@ services:
     container_name: foodbridge-api
     environment:
       TZ: "Asia/Kolkata"
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=foodbridgedb;User=root;Password=Tanmay@1907;"
     ports:
       - "5000:8080"
     depends_on:

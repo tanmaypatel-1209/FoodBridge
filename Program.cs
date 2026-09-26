@@ -43,33 +43,21 @@ public class Program
             });
         string connectionString =
             builder.Configuration.GetConnectionString("DefaultConnection")
-            ?? "Data Source=foodbridge.db";
+            ?? "Server=mysql;Port=3306;Database=foodbridgedb;User=root;Password=Tanmay@1907;";
 
-        bool isSqlite = connectionString.Contains(".db", StringComparison.OrdinalIgnoreCase) ||
-                        connectionString.Contains("Data Source=", StringComparison.OrdinalIgnoreCase);
+        builder.Services.AddDbContext<FoodBridgeDB>(options =>
+            options.UseMySql(
+                connectionString,
+                new MySqlServerVersion(new Version(8, 4, 0))
+            )
+        );
 
-        if (isSqlite)
-        {
-            builder.Services.AddDbContext<FoodBridgeDB>(options =>
-                options.UseSqlite(connectionString)
-            );
-        }
-        else
-        {
-            builder.Services.AddDbContext<FoodBridgeDB>(options =>
-                options.UseMySql(
-                    connectionString,
-                    new MySqlServerVersion(new Version(8, 4, 0))
-                )
-            );
-        }
-
-        var app = builder.Build();
+        var app = builder.Build(); 
 
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<FoodBridgeDB>();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 15; i++)
             {
                 try
                 {
@@ -81,7 +69,7 @@ public class Program
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Database connection attempt {i + 1} failed: {ex.Message}");
-                    if (i < 4) Thread.Sleep(2000);
+                    if (i < 14) Thread.Sleep(2000);
                 }
             }
         }

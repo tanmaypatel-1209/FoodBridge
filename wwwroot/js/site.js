@@ -10,9 +10,9 @@ window.FoodBridge.getToken = function () {
     return localStorage.getItem(window.FoodBridge.TOKEN_KEY) || sessionStorage.getItem(window.FoodBridge.TOKEN_KEY) || '';
 };
 
-window.FoodBridge.setToken = function (token, rememberMe = false, userInfo = null) {
-    const storage = rememberMe ? localStorage : sessionStorage;
-    const otherStorage = rememberMe ? sessionStorage : localStorage;
+window.FoodBridge.setToken = function (token, rememberMe = true, userInfo = null) {
+    const storage = (rememberMe !== false) ? localStorage : sessionStorage;
+    const otherStorage = (rememberMe !== false) ? sessionStorage : localStorage;
     otherStorage.removeItem(window.FoodBridge.TOKEN_KEY);
     otherStorage.removeItem(window.FoodBridge.USER_KEY);
     

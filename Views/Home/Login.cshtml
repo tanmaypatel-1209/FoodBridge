@@ -80,7 +80,7 @@
 
                 <!-- Remember Me -->
                 <label class="form-check-row" for="loginRemember">
-                    <input id="loginRemember" type="checkbox" />
+                    <input id="loginRemember" type="checkbox" checked />
                     <span>Keep me signed in</span>
                 </label>
 
@@ -109,10 +109,10 @@
 
     // If already authenticated, redirect by role
     if (window.FoodBridge && window.FoodBridge.getToken()) {
-        var existingRole = window.FoodBridge.getUserRole();
-        if (existingRole === 'Donor')       { window.location.replace('/Home/DonerHome');       return; }
-        if (existingRole === 'Receiver')    { window.location.replace('/Home/ReceiverHome');    return; }
-        if (existingRole === 'Transporter') { window.location.replace('/Home/TransporterHome'); return; }
+        var existingRole = String(window.FoodBridge.getUserRole() || '').trim().toLowerCase();
+        if (existingRole === 'donor')       { window.location.replace('/Home/DonerHome');       return; }
+        if (existingRole === 'receiver')    { window.location.replace('/Home/ReceiverHome');    return; }
+        if (existingRole === 'transporter') { window.location.replace('/Home/TransporterHome'); return; }
     }
 
     // Password toggle
@@ -151,7 +151,7 @@
 
         var email    = document.getElementById('loginEmail').value.trim();
         var password = document.getElementById('loginPassword').value;
-        var remember = rememberCb && rememberCb.checked;
+        var remember = rememberCb ? rememberCb.checked : true;
 
         if (!email)    { showMsg('Please enter your email address.', true); return; }
         if (!password) { showMsg('Please enter your password.', true); return; }
@@ -205,9 +205,10 @@
             showMsg('Login successful! Redirecting…', false);
 
             setTimeout(function () {
-                if (role === 'Donor')             { window.location.href = '/Home/DonerHome'; }
-                else if (role === 'Receiver')     { window.location.href = '/Home/ReceiverHome'; }
-                else if (role === 'Transporter')  { window.location.href = '/Home/TransporterHome'; }
+                var r = String(role || '').trim().toLowerCase();
+                if (r === 'donor')             { window.location.href = '/Home/DonerHome'; }
+                else if (r === 'receiver')     { window.location.href = '/Home/ReceiverHome'; }
+                else if (r === 'transporter')  { window.location.href = '/Home/TransporterHome'; }
                 else { window.location.href = '/Home/Index'; }
             }, 600);
 

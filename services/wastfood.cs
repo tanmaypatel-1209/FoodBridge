@@ -24,7 +24,7 @@ public class wastfood
         email ??= httpContextAccessor?.HttpContext?.User?.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(email)) return;
         DateTime now = DateTime.Now;
-        if (role == "Donar" || role == "Donor")
+        if (role == "Donor")
         {
             var foods = await context.Foods
                 .Where(x => x.emailID == email && (x.status == "pending" || x.status == "Allocated"))
@@ -32,13 +32,13 @@ public class wastfood
 
             foreach (Food food in foods)
             {
-                if (food.donationDateTime.HasValue && (food.donationDateTime.Value - now).Duration().TotalHours >= 1)
+                if (food.donationDateTime.HasValue && (now - food.donationDateTime.Value).TotalHours >= 1)
                 {
                     food.status = "NotMatched";
                 }
             }
         }
-        else if (role == "Ngos" || role == "NGOs" || role == "Receiver")
+        else if (role == "NGOs")
         {
             var foods = await context.NeededFoods
                 .Where(x => x.emailID == email && (x.status == "pending" || x.status == "Allocated"))
@@ -46,7 +46,7 @@ public class wastfood
 
             foreach (NeededFood food in foods)
             {
-                if (food.requestDateTime.HasValue && (food.requestDateTime.Value - now).Duration().TotalHours >= 1)
+                if (food.requestDateTime.HasValue && (now- food.requestDateTime.Value).TotalHours >= 1)
                 {
                     food.status = "NotMatched";
                 }

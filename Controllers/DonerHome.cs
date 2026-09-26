@@ -18,6 +18,7 @@ public class DonerHome : ControllerBase
     private readonly MatchFoodRequirement match;
     public DonerHome(FoodBridgeDB context, wastfood wf, MatchFoodRequirement match)
     {
+        
         this.wf = wf;
         this.context = context;
         this.match = match;
@@ -72,7 +73,7 @@ public class DonerHome : ControllerBase
         var email = User.FindFirstValue(ClaimTypes.Email);
         if (!string.IsNullOrEmpty(email))
         {
-            await wf.foodWast(email, "Donar");
+            await wf.foodWast(email, "Donor");
         }
         List<Food> food = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(
             context.Foods.Where(f => f.emailID == email && f.status == "pending")

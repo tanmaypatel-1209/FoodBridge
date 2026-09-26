@@ -16,59 +16,32 @@ public class MatchFoodRequirement{
     public async Task Matched(NeededFood nf){
         Console.WriteLine("matched");
         var foods = await context.Foods
-            .Where(x => x.status == "pending" && x.city == nf.city && x.state == nf.state)
-            .ToListAsync();
-        int min = 999;
-        Food? minWast = null;
-        foreach (Food food in foods) {
-            if (food.donationDateTime.HasValue && nf.requestDateTime.HasValue &&
-                (food.donationDateTime.Value - nf.requestDateTime.Value).Duration().TotalHours <= 2)
-            {
+            .Where(x=>(
+                x.status=="pending" && 
+                x.city.ToUpper()==nf.city.ToUpper() && 
+                x.state.ToUpper()==nf.state.ToUpper() && 
+                (x.donationDateTime-nf.requestDateTime).Duration().TotalHours<=2
+                ));
+            int min=999;
+            Food minWast;
+        foreach(Food food in foods){
                 int m = food.quntity - nf.quntity;
-                if (m >= 0 && min > m) {
+            if(m >= 0 && min > m){
                     minWast = food;
                     min = m;
                 }
             }
+        if(min>=20){
+            context.Foods.Remov(minWast);
+            Food fd = new Food(minWast.emailID,minWast.user,minWast.quntity-min,minWast.FoodName,minWast.items,minWast.donationDateTime,minWast.city,minWast.state,minWast.perfectLocation);
+            context.Foods.add(fd);
+            Food fd1 = new Food(minWast.emailID,minWast.user,min,minWast.FoodName,minWast.items,minWast.donationDateTime,minWast.city,minWast.state,minWast.perfectLocation);
+            context.Foods.add(fd1);     
+            await context.SaveChangesAsync();
+            minWast = fd1;
         }
         if (minWast != null) {
-            await CreateMatchAndDelivery(minWast, nf);
-        }
-    }
-
-    public async Task MatchAvailableFood(Food food)
-    {
-        if (food.status != "pending") return;
-
-        var neededList = await context.NeededFoods
-            .Where(x => x.status == "pending" && x.city == food.city && x.state == food.state)
-            .ToListAsync();
-
-        int min = 999;
-        NeededFood? bestNf = null;
-        foreach (var nf in neededList)
-        {
-            if (food.donationDateTime.HasValue && nf.requestDateTime.HasValue &&
-                (food.donationDateTime.Value - nf.requestDateTime.Value).Duration().TotalHours <= 2)
-            {
-                int m = food.quntity - nf.quntity;
-                if (m >= 0 && min > m)
-                {
-                    bestNf = nf;
-                    min = m;
-                }
-            }
-        }
-
-        if (bestNf != null)
-        {
-            await CreateMatchAndDelivery(food, bestNf);
-        }
-    }
-
-    private async Task CreateMatchAndDelivery(Food minWast, NeededFood nf)
-    {
-        var matchedFood = new MatchedFood(
+            context.MatchedFoods.Add(new MatchedFood(
             minWast.id,
             minWast.emailID,
             minWast.quntity,
@@ -80,25 +53,61 @@ public class MatchFoodRequirement{
             nf.emailID,
             nf.requestDateTime,
             nf.quntity,
-            nf.perfectLocation);
-
-        context.MatchedFoods.Add(matchedFood);
-        nf.status = "Allocated";
-        minWast.status = "Allocated";
+                nf.perfectLocation));
+            nf.status="Allocated";
+            minWast.status="Allocated";
         await context.SaveChangesAsync();
+        }
+    }
 
-        var delivery = new FoodDelivery(matchedFood.id, minWast.emailID, nf.emailID);
-        context.FoodDeliveries.Add(delivery);
-        await context.SaveChangesAsync();
+    public async Task Matched(Food food){
+        Console.WriteLine("matched");
+        var neededFoods = await context.NeededFoods
+            .Where(x=>(
+                x.status=="pending" && 
+                x.city.ToUpper()==food.city.ToUpper() && 
+                x.state.ToUpper()==food.state.ToUpper() && 
+                (food.donationDateTime-x.requestDateTime).Duration().TotalHours<=2
+                ));
+        int min=999;
+        NeededFood bestNf;
+        foreach(NeededFood nf in neededFoods){
+            int m = food.quntity - nf.quntity;
+            if(m >= 0 && min > m){
+                bestNf = nf;
+                min = m;
+            }
+        }
+        if(min>=20){
+            context.Foods.Remov(food);
+            Food fd = new Food(food.emailID,food.user,food.quntity-min,food.FoodName,food.items,food.donationDateTime,food.city,food.state,food.perfectLocation);
+            context.Foods.add(fd);
+            Food fd1 = new Food(food.emailID,food.user,min,food.FoodName,food.items,food.donationDateTime,food.city,food.state,food.perfectLocation);
+            context.Foods.add(fd1);     
+            await context.SaveChangesAsync();
+            food = fd1;
+        }
+        if (bestNf != null) {
+            context.MatchedFoods.Add(new MatchedFood(
+                food.id,
+                food.emailID,
+                food.quntity,
+                food.donationDateTime,
+                food.city,
+                food.state,
+                food.perfectLocation,
+                bestNf.id,
+                bestNf.emailID,
+                bestNf.requestDateTime,
+                bestNf.quntity,
+                bestNf.perfectLocation));
+            bestNf.status="Allocated";
+            food.status="Allocated";
+            await context.SaveChangesAsync();
+        }
+    }
 
-        context.DeliveryStatusHistories.Add(new DeliveryStatusHistory(
-            delivery.Id,
-            "Allocated",
-            "AwaitingTransporter",
-            "System",
-            "System",
-            $"Automated match: {minWast.quntity} servings of '{minWast.FoodName}' allocated to requirement #{nf.id}."
-        ));
-        await context.SaveChangesAsync();
+    public async Task MatchAvailableFood(Food food){
+        await Matched(food);
     }
 }
