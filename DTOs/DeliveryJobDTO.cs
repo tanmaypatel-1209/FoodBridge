@@ -28,6 +28,8 @@ namespace FoodBridge.DTOs
         public string PickupLocation { get; set; } = string.Empty;
         public string PickupCity { get; set; } = string.Empty;
         public string PickupState { get; set; } = string.Empty;
+        public double? PickupLatitude { get; set; }
+        public double? PickupLongitude { get; set; }
 
         // Receiver details
         public string ReceiverId { get; set; } = string.Empty;
@@ -35,6 +37,8 @@ namespace FoodBridge.DTOs
         public string DeliveryLocation { get; set; } = string.Empty;
         public string DeliveryCity { get; set; } = string.Empty;
         public string DeliveryState { get; set; } = string.Empty;
+        public double? DeliveryLatitude { get; set; }
+        public double? DeliveryLongitude { get; set; }
 
         // Food details
         public int FoodId { get; set; }

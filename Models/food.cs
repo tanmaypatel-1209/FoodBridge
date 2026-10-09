@@ -32,6 +32,10 @@ namespace FoodBridge.Models
 
         public string? perfectLocation { get; set; }
 
+        // Geographic coordinates for distance-based Transporter matching
+        public double? PickupLatitude { get; set; }
+        public double? PickupLongitude { get; set; }
+
         public Food()
         {
         }
@@ -66,4 +70,3 @@ namespace FoodBridge.Models
         }
     }
 }
-

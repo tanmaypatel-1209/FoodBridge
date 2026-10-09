@@ -192,10 +192,11 @@ window.FoodBridge.updateAuthUI = function () {
             const displayName = user?.name || (email ? email.split('@')[0] : 'User');
 
             navActions.innerHTML = `
-                <div class="user-identity-badge">
+                <a href="/Home/Profile" class="user-identity-badge user-profile-box" title="My Profile — Click to view & edit profile" style="text-decoration:none; cursor:pointer;">
                     <span class="role-tag">${role}</span>
-                    <span>${displayName}</span>
-                </div>
+                    <span id="navUserDisplayName">${displayName}</span>
+                    <span class="profile-gear-icon" aria-hidden="true">&#9881;</span>
+                </a>
                 <button id="navSignOutBtn" class="btn-secondary-custom" type="button" style="cursor:pointer;">
                     Sign Out
                 </button>
@@ -341,6 +342,44 @@ document.addEventListener('DOMContentLoaded', () => {
             window.FoodBridge.navigateWithAuth('/Home/TransporterHome');
         });
     });
+
+    // Attach click handler to Profile links for Auth routing
+    document.querySelectorAll('a[href="/Home/Profile"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const token = window.FoodBridge.getToken();
+            if (!token) {
+                e.preventDefault();
+                window.location.href = '/Home/Login';
+                return;
+            }
+            e.preventDefault();
+            window.FoodBridge.navigateWithAuth('/Home/Profile');
+        });
+    });
+
+    // Auto-sync profile name to navbar if authenticated and name not yet cached
+    const token = window.FoodBridge.getToken();
+    if (token) {
+        const cachedUser = window.FoodBridge.getUser();
+        if (!cachedUser || !cachedUser.name) {
+            window.FoodBridge.authFetch('/profile/me')
+                .then(res => res.ok ? res.json() : null)
+                .then(profile => {
+                    if (profile && profile.name) {
+                        const u = window.FoodBridge.getUser() || {};
+                        u.name = profile.name;
+                        u.city = profile.city;
+                        u.role = profile.role;
+                        u.email = profile.email;
+                        localStorage.setItem(window.FoodBridge.USER_KEY, JSON.stringify(u));
+                        if (window.FoodBridge.updateAuthUI) {
+                            window.FoodBridge.updateAuthUI();
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+    }
 
     // Navbar Donor Portal button opens modal
     const navPortalBtn = document.getElementById('navDonorPortalBtn');

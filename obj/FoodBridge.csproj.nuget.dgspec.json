@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\radhe\\OneDrive\\Desktop\\FoodBridge\\FoodBridge.csproj": {}
+    "C:\\Users\\radhe\\OneDrive\\Desktop\\PROJECTS\\FoodBridge\\FoodBridge.csproj": {}
   },
   "projects": {
-    "C:\\Users\\radhe\\OneDrive\\Desktop\\FoodBridge\\FoodBridge.csproj": {
+    "C:\\Users\\radhe\\OneDrive\\Desktop\\PROJECTS\\FoodBridge\\FoodBridge.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\radhe\\OneDrive\\Desktop\\FoodBridge\\FoodBridge.csproj",
+        "projectUniqueName": "C:\\Users\\radhe\\OneDrive\\Desktop\\PROJECTS\\FoodBridge\\FoodBridge.csproj",
         "projectName": "FoodBridge",
-        "projectPath": "C:\\Users\\radhe\\OneDrive\\Desktop\\FoodBridge\\FoodBridge.csproj",
+        "projectPath": "C:\\Users\\radhe\\OneDrive\\Desktop\\PROJECTS\\FoodBridge\\FoodBridge.csproj",
         "packagesPath": "C:\\Users\\radhe\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\radhe\\OneDrive\\Desktop\\FoodBridge\\obj\\",
+        "outputPath": "C:\\Users\\radhe\\OneDrive\\Desktop\\PROJECTS\\FoodBridge\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\radhe\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -53,10 +53,6 @@
               "version": "[9.0.9, )"
             },
             "Microsoft.EntityFrameworkCore": {
-              "target": "Package",
-              "version": "[9.0.0, )"
-            },
-            "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[9.0.0, )"
             },

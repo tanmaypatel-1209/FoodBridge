@@ -1,0 +1,700 @@
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="dashboard-container" id="profilePageContainer">
+
+    <!-- Hero / Breadcrumb Header -->
+    <div class="donor-hero profile-hero" id="profileHeroSection" style="margin-bottom:28px;">
+        <div class="donor-hero-text">
+            <span class="tag-pill" id="profileRoleBadge">My Account</span>
+            <h1 id="profileGreeting">Account & Profile Management</h1>
+            <p>
+                View and manage your identity, contact information, and location preferences across the FoodBridge network.
+            </p>
+        </div>
+        <div class="donor-metrics" id="profileQuickStats">
+            <div class="metric-card">
+                <span class="metric-value highlight" id="statRoleDisplay">—</span>
+                <span class="metric-label">Account Role</span>
+            </div>
+            <div class="metric-card">
+                <span class="metric-value" style="color:#2563eb;" id="statCityDisplay">—</span>
+                <span class="metric-label">Base City</span>
+            </div>
+            <div class="metric-card" id="statDynamicCard">
+                <span class="metric-value" style="color:#10b981;" id="statDynamicValue">—</span>
+                <span class="metric-label" id="statDynamicLabel">Activity</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert / Feedback Notification Messages -->
+    <div id="profileGlobalMessage" class="form-message mb-4" role="alert" aria-live="polite" style="display:none;"></div>
+
+    <div class="profile-layout-grid">
+
+        <!-- Left Column: Avatar & Role Summary Card -->
+        <aside class="profile-sidebar-card">
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-circle" id="profileAvatarCircle">
+                    <span id="profileAvatarInitials">FB</span>
+                </div>
+                <div class="profile-avatar-info">
+                    <h3 id="sidebarFullName" style="font-size:18px;font-weight:700;margin:0 0 4px 0;">Loading...</h3>
+                    <p id="sidebarEmail" style="font-size:13px;color:var(--text-secondary);margin:0 0 8px 0;">...</p>
+                    <span class="role-mini-pill" id="sidebarRoleTag">MEMBER</span>
+                </div>
+            </div>
+
+            <hr style="border:none; border-top:1px solid var(--border-subtle); margin:20px 0;" />
+
+            <div class="profile-side-meta">
+                <div class="meta-row">
+                    <span class="meta-label">Account Status</span>
+                    <span class="meta-val text-success font-weight-bold">&#9679; Active</span>
+                </div>
+                <div class="meta-row">
+                    <span class="meta-label">Base Location</span>
+                    <span class="meta-val" id="sidebarLocation">Ahmedabad</span>
+                </div>
+                <div class="meta-row" id="sidebarAvailabilityRow" style="display:none;">
+                    <span class="meta-label">Fleet Status</span>
+                    <span class="meta-val" id="sidebarAvailabilityBadge">Available</span>
+                </div>
+            </div>
+
+            <div class="profile-side-actions mt-4">
+                <button type="button" class="btn-primary-custom w-100" id="btnToggleEdit" style="justify-content:center;">
+                    <span aria-hidden="true">&#9998;</span>
+                    <span id="btnToggleEditText">Edit Profile</span>
+                </button>
+                <a href="javascript:history.back()" class="btn-secondary-custom w-100 mt-2 text-center" style="display:inline-block; text-decoration:none;">
+                    &larr; Back to Dashboard
+                </a>
+            </div>
+        </aside>
+
+        <!-- Right Column: Main Profile Details & Form -->
+        <main class="profile-main-content">
+
+            <form id="profileForm" novalidate>
+
+                <!-- SECTION 1: Personal & Contact Information -->
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div>
+                            <h2 class="profile-section-title">Personal & Contact Details</h2>
+                            <p class="profile-section-subtitle">Your identification and communication details.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Full Name -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="inputFullName" class="form-label-custom">Full Name <span class="text-danger">*</span></label>
+                                <div class="input-container">
+                                    <span class="input-icon" aria-hidden="true">&#128100;</span>
+                                    <input id="inputFullName" name="name" type="text" placeholder="e.g. Tirth Patel" required maxlength="100" />
+                                </div>
+                                <div class="field-error-msg" id="errFullName"></div>
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="inputPhone" class="form-label-custom">Phone Number</label>
+                                <div class="input-container">
+                                    <span class="input-icon" aria-hidden="true">&#128222;</span>
+                                    <input id="inputPhone" name="phone" type="tel" placeholder="e.g. +91 9876543210" maxlength="20" />
+                                </div>
+                                <div class="field-error-msg" id="errPhone"></div>
+                            </div>
+                        </div>
+
+                        <!-- Email ID (Read-Only) -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="inputEmail" class="form-label-custom mb-0">Email Address</label>
+                                    <span class="badge-readonly">READ ONLY</span>
+                                </div>
+                                <div class="input-container is-disabled">
+                                    <span class="input-icon" aria-hidden="true">&#9993;</span>
+                                    <input id="inputEmail" type="email" readonly disabled />
+                                </div>
+                                <small class="text-muted" style="font-size:11px;display:block;margin-top:4px;">
+                                    Email is your primary login identity and cannot be changed from profile settings.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Role (Read-Only) -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="inputRole" class="form-label-custom mb-0">Platform Role</label>
+                                    <span class="badge-readonly">READ ONLY</span>
+                                </div>
+                                <div class="input-container is-disabled">
+                                    <span class="input-icon" aria-hidden="true">&#128273;</span>
+                                    <input id="inputRole" type="text" readonly disabled />
+                                </div>
+                                <small class="text-muted" style="font-size:11px;display:block;margin-top:4px;">
+                                    Controlled strictly by registration authorization.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: Location & Address (Affects Matching) -->
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div>
+                            <h2 class="profile-section-title">Location & Address Details</h2>
+                            <p class="profile-section-subtitle">
+                                Used for smart matching between donors, receivers, and delivery partners.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- City -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="inputCity" class="form-label-custom">City <span class="text-danger">*</span></label>
+                                <div class="input-container">
+                                    <span class="input-icon" aria-hidden="true">&#127961;</span>
+                                    <input id="inputCity" name="city" type="text" placeholder="e.g. Nadiad" required maxlength="60" />
+                                </div>
+                                <div class="field-error-msg" id="errCity"></div>
+                            </div>
+                        </div>
+
+                        <!-- State -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="inputState" class="form-label-custom">State</label>
+                                <div class="input-container">
+                                    <span class="input-icon" aria-hidden="true">&#127757;</span>
+                                    <input id="inputState" name="state" type="text" placeholder="e.g. Gujarat" maxlength="60" />
+                                </div>
+                                <div class="field-error-msg" id="errState"></div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label for="inputAddress" class="form-label-custom">Address / Street / Landmark</label>
+                                <div class="input-container">
+                                    <span class="input-icon" aria-hidden="true">&#128205;</span>
+                                    <input id="inputAddress" name="address" type="text" placeholder="e.g. Nalanda Nagar, Near Santram Road" maxlength="250" />
+                                </div>
+                                <div class="field-error-msg" id="errAddress"></div>
+                            </div>
+                        </div>
+
+                        <!-- Pincode -->
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="inputPincode" class="form-label-custom">Pincode / Postal Code</label>
+                                <div class="input-container">
+                                    <span class="input-icon" aria-hidden="true">&#128236;</span>
+                                    <input id="inputPincode" name="pincode" type="text" placeholder="e.g. 387001" maxlength="10" />
+                                </div>
+                                <div class="field-error-msg" id="errPincode"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="location-notice-banner mt-3">
+                        <span class="notice-icon" aria-hidden="true">&#8505;</span>
+                        <div class="notice-text">
+                            <strong>Location Notice:</strong>
+                            Updating your location updates future food matching and delivery discovery. Existing active and completed deliveries remain securely preserved with their original captured locations.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Role-Specific Configuration (Transporter / Donor / Receiver) -->
+                <div class="profile-section-card mb-4" id="roleSpecificCard">
+                    <div class="profile-section-header">
+                        <div>
+                            <h2 class="profile-section-title" id="roleCardTitle">Role Information</h2>
+                            <p class="profile-section-subtitle" id="roleCardSubtitle">Specific parameters for your active role.</p>
+                        </div>
+                    </div>
+
+                    <!-- Transporter Section -->
+                    <div id="transporterFieldsSection" style="display:none;">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="selectAvailability" class="form-label-custom">Fleet Availability Status</label>
+                                    <div class="input-container">
+                                        <span class="input-icon" aria-hidden="true">&#128666;</span>
+                                        <select id="selectAvailability" name="availabilityStatus" class="form-select-custom">
+                                            <option value="Available">Available (Ready for delivery jobs)</option>
+                                            <option value="Busy">Busy (Currently on task)</option>
+                                            <option value="Offline">Offline (Unavailable)</option>
+                                        </select>
+                                    </div>
+                                    <div class="field-error-msg" id="errAvailability"></div>
+                                    <small id="activeTripNotice" class="text-danger" style="display:none; font-size:11px; margin-top:4px;">
+                                        &#9888; You have an active trip in progress. Status cannot be switched to 'Available' until trip handover is completed.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label-custom">GPS Location Coordinates</label>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" id="btnDetectGPS" class="btn-secondary-custom flex-grow-1" style="font-size:12px; padding:10px 14px;">
+                                            &#127919; Detect My Current GPS
+                                        </button>
+                                    </div>
+                                    <div id="gpsStatusMessage" class="field-error-msg" style="font-size:11px;"></div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="inputLatitude" class="form-label-custom">Latitude</label>
+                                    <div class="input-container">
+                                        <span class="input-icon" aria-hidden="true">&#127758;</span>
+                                        <input id="inputLatitude" name="latitude" type="number" step="any" placeholder="e.g. 23.0338" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="inputLongitude" class="form-label-custom">Longitude</label>
+                                    <div class="input-container">
+                                        <span class="input-icon" aria-hidden="true">&#127758;</span>
+                                        <input id="inputLongitude" name="longitude" type="number" step="any" placeholder="e.g. 72.5540" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Donor Summary Section -->
+                    <div id="donorFieldsSection" style="display:none;">
+                        <div class="role-info-banner">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="info-badge-icon">&#127822;</div>
+                                <div>
+                                    <h4 style="font-size:15px; font-weight:700; margin:0 0 4px 0;">Food Donor Account</h4>
+                                    <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                                        You are registered as a community Food Donor. Your listed batches are broadcast to verified shelters.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-3 d-flex gap-2">
+                                <a href="/Home/DonerHome" class="btn-secondary-custom" style="text-decoration:none; font-size:12px;">Go to Donor Dashboard</a>
+                                <button type="button" class="btn-primary-custom" id="btnDonorPortalLink" style="font-size:12px;">+ List Food Donation</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Receiver Summary Section -->
+                    <div id="receiverFieldsSection" style="display:none;">
+                        <div class="role-info-banner">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="info-badge-icon">&#127970;</div>
+                                <div>
+                                    <h4 style="font-size:15px; font-weight:700; margin:0 0 4px 0;">Community Shelter & Receiver</h4>
+                                    <p style="font-size:13px; color:var(--text-secondary); margin:0;">
+                                        Your organization requests surplus meals and coordinates direct delivery handovers.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="mt-3 d-flex gap-2">
+                                <a href="/Home/ReceiverHome" class="btn-secondary-custom" style="text-decoration:none; font-size:12px;">Go to Receiver Dashboard</a>
+                                <a href="/Home/RequestFood" class="btn-primary-custom" style="text-decoration:none; font-size:12px;">+ Request Food</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Action Buttons (Edit Mode only) -->
+                <div class="profile-form-actions" id="editActionsBar" style="display:none;">
+                    <button type="button" class="btn-secondary-custom" id="btnCancelEdit">
+                        Cancel
+                    </button>
+                    <button type="submit" class="auth-submit-btn" id="btnSaveProfile" style="min-width:180px;">
+                        <span>Save Changes</span>
+                        <span aria-hidden="true">&rarr;</span>
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    // ── Auth Guard ────────────────────────────────────────────────────────────
+    var token = window.FoodBridge ? window.FoodBridge.getToken() : '';
+    if (!token) {
+        window.location.replace('/Home/Login');
+        return;
+    }
+
+    var state = {
+        isEditing: false,
+        profile: null,
+        hasActiveTrip: false
+    };
+
+    // DOM Elements
+    var msgBanner = document.getElementById('profileGlobalMessage');
+    var btnToggle = document.getElementById('btnToggleEdit');
+    var btnToggleText = document.getElementById('btnToggleEditText');
+    var btnCancel = document.getElementById('btnCancelEdit');
+    var btnSave = document.getElementById('btnSaveProfile');
+    var editActionsBar = document.getElementById('editActionsBar');
+    var form = document.getElementById('profileForm');
+
+    // Inputs
+    var inName = document.getElementById('inputFullName');
+    var inPhone = document.getElementById('inputPhone');
+    var inEmail = document.getElementById('inputEmail');
+    var inRole = document.getElementById('inputRole');
+    var inCity = document.getElementById('inputCity');
+    var inState = document.getElementById('inputState');
+    var inAddress = document.getElementById('inputAddress');
+    var inPincode = document.getElementById('inputPincode');
+
+    // Transporter inputs
+    var selectAvail = document.getElementById('selectAvailability');
+    var inLat = document.getElementById('inputLatitude');
+    var inLng = document.getElementById('inputLongitude');
+    var btnDetect = document.getElementById('btnDetectGPS');
+    var gpsMsg = document.getElementById('gpsStatusMessage');
+    var activeTripNotice = document.getElementById('activeTripNotice');
+
+    // Message helper
+    function showMessage(text, isError) {
+        msgBanner.textContent = text;
+        msgBanner.className = 'form-message mb-4 ' + (isError ? 'is-error' : 'is-success');
+        msgBanner.style.display = 'block';
+        msgBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearMessage() {
+        msgBanner.textContent = '';
+        msgBanner.className = 'form-message mb-4';
+        msgBanner.style.display = 'none';
+    }
+
+    // Set input disabled states based on isEditing
+    function applyEditMode(editing) {
+        state.isEditing = editing;
+        btnToggleText.textContent = editing ? 'Viewing Mode' : 'Edit Profile';
+        editActionsBar.style.display = editing ? 'flex' : 'none';
+
+        // Editable fields
+        [inName, inPhone, inCity, inState, inAddress, inPincode].forEach(function (el) {
+            el.readOnly = !editing;
+            if (editing) {
+                el.classList.add('is-editable-active');
+            } else {
+                el.classList.remove('is-editable-active');
+            }
+        });
+
+        // Transporter fields
+        if (selectAvail) {
+            selectAvail.disabled = !editing;
+        }
+        if (inLat) inLat.readOnly = !editing;
+        if (inLng) inLng.readOnly = !editing;
+        if (btnDetect) btnDetect.disabled = !editing;
+
+        // Email and Role are ALWAYS disabled
+        inEmail.readOnly = true;
+        inEmail.disabled = true;
+        inRole.readOnly = true;
+        inRole.disabled = true;
+    }
+
+    // Fill form from profile object
+    function populateForm(p) {
+        inName.value = p.name || '';
+        inEmail.value = p.email || '';
+        inRole.value = (p.role || '').toUpperCase();
+        inPhone.value = p.phone || '';
+        inCity.value = p.city || '';
+        inState.value = p.state || '';
+        inAddress.value = p.address || '';
+        inPincode.value = p.pincode || '';
+
+        // Sidebar & Hero text
+        document.getElementById('sidebarFullName').textContent = p.name || 'User';
+        document.getElementById('sidebarEmail').textContent = p.email || '';
+        document.getElementById('sidebarRoleTag').textContent = (p.role || 'Member').toUpperCase();
+        document.getElementById('sidebarLocation').textContent = p.city || '—';
+        document.getElementById('statRoleDisplay').textContent = (p.role || 'Member').toUpperCase();
+        document.getElementById('statCityDisplay').textContent = p.city || '—';
+
+        // Initials
+        var initials = 'FB';
+        if (p.name) {
+            var parts = p.name.trim().split(/\s+/);
+            if (parts.length >= 2) {
+                initials = (parts[0][0] + parts[1][0]).toUpperCase();
+            } else if (parts[0].length >= 1) {
+                initials = parts[0].slice(0, 2).toUpperCase();
+            }
+        }
+        document.getElementById('profileAvatarInitials').textContent = initials;
+
+        // Role sections
+        var r = (p.role || '').toLowerCase();
+        var transSection = document.getElementById('transporterFieldsSection');
+        var donorSection = document.getElementById('donorFieldsSection');
+        var recvSection = document.getElementById('receiverFieldsSection');
+
+        transSection.style.display = (r === 'transporter') ? 'block' : 'none';
+        donorSection.style.display = (r === 'donor') ? 'block' : 'none';
+        recvSection.style.display = (r === 'receiver' || r === 'ngo') ? 'block' : 'none';
+
+        if (r === 'transporter') {
+            document.getElementById('sidebarAvailabilityRow').style.display = 'flex';
+            document.getElementById('sidebarAvailabilityBadge').textContent = p.availabilityStatus || 'Offline';
+            document.getElementById('statDynamicLabel').textContent = 'Completed Trips';
+            document.getElementById('statDynamicValue').textContent = p.completedDeliveriesCount || 0;
+
+            if (selectAvail) selectAvail.value = p.availabilityStatus || 'Available';
+            if (inLat) inLat.value = (p.latitude != null) ? p.latitude : '';
+            if (inLng) inLng.value = (p.longitude != null) ? p.longitude : '';
+
+            state.hasActiveTrip = !!p.hasActiveDelivery;
+            if (state.hasActiveTrip) {
+                activeTripNotice.style.display = 'block';
+                activeTripNotice.textContent = "⚠ Active delivery (" + (p.activeDeliveryStatus || 'In Progress') + ") in progress. Status cannot be changed to 'Available' until completed.";
+            } else {
+                activeTripNotice.style.display = 'none';
+            }
+        } else if (r === 'donor') {
+            document.getElementById('statDynamicLabel').textContent = 'Donations Listed';
+            document.getElementById('statDynamicValue').textContent = p.totalDonationsCount || 0;
+        } else if (r === 'receiver' || r === 'ngo') {
+            document.getElementById('statDynamicLabel').textContent = 'Food Requests';
+            document.getElementById('statDynamicValue').textContent = p.totalRequestsCount || 0;
+        }
+    }
+
+    // Fetch Profile from GET /profile/me
+    async function loadProfile() {
+        try {
+            var resp = await window.FoodBridge.authFetch('/profile/me');
+            if (resp.status === 401 || resp.status === 403) {
+                window.location.replace('/Home/Login');
+                return;
+            }
+            if (!resp.ok) {
+                throw new Error('Failed to load profile details (Status ' + resp.status + ').');
+            }
+            var data = await resp.json();
+            state.profile = data;
+            populateForm(data);
+            applyEditMode(false);
+        } catch (err) {
+            showMessage(err.message || 'Error loading profile.', true);
+        }
+    }
+
+    // Toggle button handler
+    btnToggle.addEventListener('click', function () {
+        applyEditMode(!state.isEditing);
+        if (state.isEditing) {
+            inName.focus();
+        } else {
+            // Restore original values
+            if (state.profile) populateForm(state.profile);
+        }
+    });
+
+    btnCancel.addEventListener('click', function () {
+        clearMessage();
+        if (state.profile) populateForm(state.profile);
+        applyEditMode(false);
+    });
+
+    // GPS Auto-detect
+    if (btnDetect) {
+        btnDetect.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                gpsMsg.textContent = 'Geolocation is not supported by your browser.';
+                return;
+            }
+            gpsMsg.textContent = 'Acquiring GPS location…';
+            btnDetect.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    btnDetect.disabled = false;
+                    inLat.value = pos.coords.latitude.toFixed(6);
+                    inLng.value = pos.coords.longitude.toFixed(6);
+                    gpsMsg.textContent = '✓ Location acquired: ' + pos.coords.latitude.toFixed(4) + ', ' + pos.coords.longitude.toFixed(4);
+                    gpsMsg.style.color = 'var(--success)';
+                },
+                function (err) {
+                    btnDetect.disabled = false;
+                    gpsMsg.textContent = 'GPS detection failed: ' + err.message;
+                    gpsMsg.style.color = 'var(--danger)';
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+    }
+
+    // Donor Portal shortcut
+    var btnPortalLink = document.getElementById('btnDonorPortalLink');
+    if (btnPortalLink) {
+        btnPortalLink.addEventListener('click', function () {
+            if (window.FoodBridge && window.FoodBridge.openDonorPortalModal) {
+                window.FoodBridge.openDonorPortalModal();
+            } else {
+                window.location.href = '/Home/DonorPortal';
+            }
+        });
+    }
+
+    // Form submission (PUT /profile/me)
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        clearMessage();
+
+        var nameVal = inName.value.trim();
+        var cityVal = inCity.value.trim();
+        var phoneVal = inPhone.value.trim();
+        var stateVal = inState.value.trim();
+        var addrVal = inAddress.value.trim();
+        var pinVal = inPincode.value.trim();
+
+        // Client-side Validation
+        if (!nameVal || nameVal.length < 2) {
+            showMessage('Please enter a valid Full Name (minimum 2 characters).', true);
+            inName.focus();
+            return;
+        }
+        if (!cityVal || cityVal.length < 2) {
+            showMessage('Please enter a valid City (minimum 2 characters).', true);
+            inCity.focus();
+            return;
+        }
+        if (phoneVal && !/^\+?[0-9\s\-()]{7,18}$/.test(phoneVal)) {
+            showMessage('Please enter a valid phone number (7 to 18 digits).', true);
+            inPhone.focus();
+            return;
+        }
+        if (pinVal && !/^[0-9a-zA-Z\s\-]{3,10}$/.test(pinVal)) {
+            showMessage('Please enter a valid postal pincode (3 to 10 characters).', true);
+            inPincode.focus();
+            return;
+        }
+
+        var payload = {
+            Name: nameVal,
+            City: cityVal,
+            Phone: phoneVal || null,
+            State: stateVal || null,
+            Address: addrVal || null,
+            Pincode: pinVal || null
+        };
+
+        // Transporter fields
+        var isTransporter = state.profile && String(state.profile.role).toLowerCase() === 'transporter';
+        if (isTransporter) {
+            var availVal = selectAvail.value;
+            if (state.hasActiveTrip && availVal === 'Available') {
+                showMessage("Cannot set status to 'Available' while you have an active delivery trip in progress.", true);
+                return;
+            }
+            payload.AvailabilityStatus = availVal;
+
+            if (inLat && inLat.value && inLng && inLng.value) {
+                var latNum = parseFloat(inLat.value);
+                var lngNum = parseFloat(inLng.value);
+                if (!isNaN(latNum) && !isNaN(lngNum)) {
+                    payload.Latitude = latNum;
+                    payload.Longitude = lngNum;
+                }
+            }
+        }
+
+        btnSave.disabled = true;
+        btnSave.innerHTML = 'Saving… <span class="spinner-dot" aria-hidden="true"></span>';
+
+        try {
+            var resp = await window.FoodBridge.authFetch('/profile/me', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resp.status === 401 || resp.status === 403) {
+                window.location.replace('/Home/Login');
+                return;
+            }
+
+            var result = await resp.json();
+
+            if (!resp.ok) {
+                var errTxt = result.message || (result.errors ? Object.values(result.errors).flat().join(' ') : 'Update failed.');
+                throw new Error(errTxt);
+            }
+
+            // Success! Update local profile state
+            state.profile = result;
+            populateForm(result);
+            applyEditMode(false);
+
+            // Update localStorage & Navbar state immediately
+            if (window.FoodBridge) {
+                var currentUser = window.FoodBridge.getUser() || {};
+                currentUser.name = result.name;
+                currentUser.city = result.city;
+                currentUser.email = result.email;
+                currentUser.role = result.role;
+
+                if (result.token) {
+                    window.FoodBridge.setToken(result.token, true, currentUser);
+                } else {
+                    localStorage.setItem(window.FoodBridge.USER_KEY, JSON.stringify(currentUser));
+                }
+
+                if (window.FoodBridge.updateAuthUI) {
+                    window.FoodBridge.updateAuthUI();
+                }
+            }
+
+            showMessage('Profile updated successfully.', false);
+
+        } catch (err) {
+            showMessage(err.message || 'Error occurred while updating profile.', true);
+        } finally {
+            btnSave.disabled = false;
+            btnSave.innerHTML = '<span>Save Changes</span> <span aria-hidden="true">&rarr;</span>';
+        }
+    });
+
+    // Initial load
+    loadProfile();
+
+})();
+</script>
+}

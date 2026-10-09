@@ -4,7 +4,9 @@ import time
 import urllib.request
 import urllib.error
 
-BASE_URL = "http://localhost:5000"
+import os
+
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:5023")
 
 def request(method, path, data=None, token=None):
     url = f"{BASE_URL}{path}"

@@ -20,65 +20,69 @@ build_property.TargetFrameworkVersion = v10.0
 build_property.EntryPointFilePath = 
 build_property.RootNamespace = FoodBridge
 build_property.RootNamespace = FoodBridge
-build_property.ProjectDir = C:\Users\radhe\OneDrive\Desktop\FoodBridge\
+build_property.ProjectDir = C:\Users\radhe\OneDrive\Desktop\PROJECTS\FoodBridge\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 10.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\radhe\OneDrive\Desktop\FoodBridge
+build_property.MSBuildProjectDirectory = C:\Users\radhe\OneDrive\Desktop\PROJECTS\FoodBridge
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/DonerHome.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/DonerHome.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEb25lckhvbWUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/DonorPortal.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/DonorPortal.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxEb25vclBvcnRhbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/Index.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/Login.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/Privacy.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/ReceiverHome.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/Profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/ReceiverHome.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxSZWNlaXZlckhvbWUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/RequestFood.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/RequestFood.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxSZXF1ZXN0Rm9vZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Home/TransporterHome.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Home/TransporterHome.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUcmFuc3BvcnRlckhvbWUuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Shared/Error.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/_ViewImports.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/_ViewStart.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/radhe/OneDrive/Desktop/FoodBridge/Views/Shared/_Layout.cshtml]
+[C:/Users/radhe/OneDrive/Desktop/PROJECTS/FoodBridge/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-pl87k0l44e

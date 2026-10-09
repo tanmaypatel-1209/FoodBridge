@@ -1,4 +1,5 @@
 using FoodBridge.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 
@@ -8,14 +9,55 @@ namespace FoodBridge.DATA
     {
         public static void Seed(FoodBridgeDB db)
         {
+            // Ensure columns exist on Users table if upgrading an existing database without logging errors
+            try
+            {
+                var cols = db.Database.SqlQueryRaw<string>(
+                    "SELECT COLUMN_NAME AS Value FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'Users';"
+                ).ToList();
+                var set = new System.Collections.Generic.HashSet<string>(cols, System.StringComparer.OrdinalIgnoreCase);
+
+                if (!set.Contains("PhoneNumber"))
+                    db.Database.ExecuteSqlRaw("ALTER TABLE Users ADD COLUMN PhoneNumber LONGTEXT NULL;");
+                if (!set.Contains("Address"))
+                    db.Database.ExecuteSqlRaw("ALTER TABLE Users ADD COLUMN Address LONGTEXT NULL;");
+                if (!set.Contains("State"))
+                    db.Database.ExecuteSqlRaw("ALTER TABLE Users ADD COLUMN State LONGTEXT NULL;");
+                if (!set.Contains("Pincode"))
+                    db.Database.ExecuteSqlRaw("ALTER TABLE Users ADD COLUMN Pincode LONGTEXT NULL;");
+            }
+            catch { }
+
             // Hashed password for "123456"
             const string hashedPassword = "AQAAAAIAAYagAAAAEMeOMPuFZOYIT/yPdadIfQQ3l/YghrYr8FeJLWk8XBxtILwQNj5vqpmdB+SDSUVOYA==";
 
             if (!db.Users.Any())
             {
-                var donor = new User("Tanmay Patel (Donor)", "abc@gmail.com", hashedPassword, "Donor", "Ahmedabad");
-                var receiver = new User("PQR Seva Trust (Receiver)", "pqr@gmail.com", hashedPassword, "Receiver", "Nadiad");
-                var transporter = new User("Amit Patel (Transporter)", "transporter@gmail.com", hashedPassword, "Transporter", "Ahmedabad");
+                var donor = new User("Tanmay Patel (Donor)", "abc@gmail.com", hashedPassword, "Donor", "Ahmedabad")
+                {
+                    PhoneNumber = "9876543210",
+                    Address = "Near Vaishnodevi Circle, SG Highway",
+                    State = "Gujarat",
+                    Pincode = "382421"
+                };
+                var receiver = new User("PQR Seva Trust (Receiver)", "pqr@gmail.com", hashedPassword, "Receiver", "Nadiad")
+                {
+                    PhoneNumber = "9123456780",
+                    Address = "Santram Bal Ashram Road, Near Mandir",
+                    State = "Gujarat",
+                    Pincode = "387001"
+                };
+                var transporter = new User("Amit Patel (Transporter)", "transporter@gmail.com", hashedPassword, "Transporter", "Ahmedabad")
+                {
+                    PhoneNumber = "9988776655",
+                    Address = "Commerce Six Roads, Navrangpura",
+                    State = "Gujarat",
+                    Pincode = "380009",
+                    AvailabilityStatus = "Available",
+                    Latitude = 23.0338,
+                    Longitude = 72.5540,
+                    LastLocationUpdatedAt = DateTime.UtcNow
+                };
 
                 db.Users.AddRange(donor, receiver, transporter);
                 db.SaveChanges();
@@ -55,8 +97,42 @@ namespace FoodBridge.DATA
                 {
                     var transporter = new User("Amit Patel (Transporter)", "transporter@gmail.com", hashedPassword, "Transporter", "Ahmedabad");
                     db.Users.Add(transporter);
-                    db.SaveChanges();
                 }
+
+                // Backfill profile details for existing seed accounts if empty
+                var uDonor = db.Users.FirstOrDefault(u => u.EmailID == "abc@gmail.com");
+                if (uDonor != null && string.IsNullOrWhiteSpace(uDonor.PhoneNumber))
+                {
+                    uDonor.PhoneNumber = "9876543210";
+                    uDonor.Address = "Near Vaishnodevi Circle, SG Highway";
+                    uDonor.State = "Gujarat";
+                    uDonor.Pincode = "382421";
+                }
+
+                var uRecv = db.Users.FirstOrDefault(u => u.EmailID == "pqr@gmail.com");
+                if (uRecv != null && string.IsNullOrWhiteSpace(uRecv.PhoneNumber))
+                {
+                    uRecv.PhoneNumber = "9123456780";
+                    uRecv.Address = "Santram Bal Ashram Road, Near Mandir";
+                    uRecv.State = "Gujarat";
+                    uRecv.Pincode = "387001";
+                }
+
+                var uTrans = db.Users.FirstOrDefault(u => u.EmailID == "transporter@gmail.com");
+                if (uTrans != null && string.IsNullOrWhiteSpace(uTrans.PhoneNumber))
+                {
+                    uTrans.PhoneNumber = "9988776655";
+                    uTrans.Address = "Commerce Six Roads, Navrangpura";
+                    uTrans.State = "Gujarat";
+                    uTrans.Pincode = "380009";
+                    if (uTrans.Latitude == null || uTrans.Longitude == null)
+                    {
+                        uTrans.Latitude = 23.0338;
+                        uTrans.Longitude = 72.5540;
+                        uTrans.LastLocationUpdatedAt = DateTime.UtcNow;
+                    }
+                }
+                db.SaveChanges();
             }
 
             // Seed sample MatchedFood and FoodDeliveries if none exist

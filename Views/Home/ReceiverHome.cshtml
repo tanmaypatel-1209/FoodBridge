@@ -8,7 +8,12 @@
     <!-- Hero -->
     <div class="donor-hero receiver-hero" id="receiverHeroSection">
         <div class="donor-hero-text">
-            <span class="tag-pill receiver-pill">Receiver Dashboard</span>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="tag-pill receiver-pill">Receiver Dashboard</span>
+                <a href="/Home/Profile" class="btn-secondary-custom" style="padding:3px 10px; font-size:11px; text-decoration:none;">
+                    &#9998; Edit Profile
+                </a>
+            </div>
             <h1 id="receiverGreeting">Welcome back, Receiver.</h1>
             <p>
                 Track food requests by category, review fulfillment status, and submit requirements.
@@ -187,6 +192,98 @@
 
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════════════════
+     EDIT REQUEST MODAL
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="editRequestModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.55);overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="editRequestModalTitle">
+    <div style="max-width:540px;margin:40px auto;background:var(--bg-card,#1e293b);border-radius:16px;padding:32px;box-shadow:0 8px 48px rgba(0,0,0,0.4);position:relative;">
+        <button id="closeEditRequestModalBtn" type="button" aria-label="Close edit form"
+            style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text-muted,#94a3b8);font-size:22px;cursor:pointer;line-height:1;">&#10005;</button>
+
+        <h3 id="editRequestModalTitle" style="margin:0 0 6px 0;font-size:20px;font-weight:700;">Edit Food Request</h3>
+        <p style="color:var(--text-muted,#94a3b8);font-size:13px;margin:0 0 22px 0;">Update the details below. Quantity cannot be changed if the request is already allocated.</p>
+
+        <form id="editRequestForm" novalidate>
+            <input type="hidden" id="editRequestId" />
+
+            <div class="form-group mb-3">
+                <label for="editReqQty">Quantity Needed (Servings)</label>
+                <div class="input-container">
+                    <span class="input-icon" aria-hidden="true">&#9830;</span>
+                    <input id="editReqQty" type="number" min="1" placeholder="e.g. 100" />
+                </div>
+                <small id="editReqQtyNote" style="color:var(--text-muted,#94a3b8);font-size:11px;"></small>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="editReqDate">Required By (Date &amp; Time)</label>
+                <div class="input-container">
+                    <span class="input-icon" aria-hidden="true">&#128197;</span>
+                    <input id="editReqDate" type="datetime-local" />
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                <div class="form-group mb-3">
+                    <label for="editReqCity">City</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#128205;</span>
+                        <input id="editReqCity" type="text" placeholder="e.g. Nadiad" />
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="editReqState">State</label>
+                    <div class="input-container">
+                        <span class="input-icon" aria-hidden="true">&#127757;</span>
+                        <input id="editReqState" type="text" placeholder="e.g. Gujarat" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="editReqLocation">Delivery / Drop-off Point</label>
+                <div class="input-container">
+                    <span class="input-icon" aria-hidden="true">&#9872;</span>
+                    <input id="editReqLocation" type="text" placeholder="e.g. Community Center, Station Road" />
+                </div>
+            </div>
+
+            <div id="editRequestMessage" class="form-message mb-3" role="alert" aria-live="polite"></div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+                <button id="cancelEditRequestBtn" type="button" class="btn-secondary-custom">Cancel</button>
+                <button id="saveEditRequestBtn" type="submit" class="auth-submit-btn" style="padding:10px 28px;">
+                    <span>Save Changes</span> <span aria-hidden="true">&rarr;</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     DELETE CONFIRMATION MODAL
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="deleteRequestModal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="deleteRequestModalTitle">
+    <div style="max-width:440px;margin:auto;background:var(--bg-card,#1e293b);border-radius:16px;padding:32px;box-shadow:0 8px 48px rgba(0,0,0,0.4);position:relative;top:50%;transform:translateY(-50%);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <span style="font-size:28px;">&#9888;</span>
+            <h3 id="deleteRequestModalTitle" style="margin:0;font-size:18px;font-weight:700;">Delete Food Request?</h3>
+        </div>
+        <p id="deleteRequestModalDesc" style="color:var(--text-muted,#94a3b8);font-size:14px;margin:0 0 24px 0;">
+            Are you sure you want to delete this food request? This action cannot be undone.
+        </p>
+        <input type="hidden" id="deleteRequestId" />
+        <div id="deleteRequestModalMsg" class="form-message mb-3" role="alert" aria-live="polite"></div>
+        <div style="display:flex;gap:12px;justify-content:flex-end;">
+            <button id="cancelDeleteRequestBtn" type="button" class="btn-secondary-custom">Cancel</button>
+            <button id="confirmDeleteRequestBtn" type="button"
+                style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;">
+                &#128465; Delete
+            </button>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
 (function () {
@@ -282,18 +379,13 @@
     document.getElementById('rcvMCardNotMatched').addEventListener('click', function() { selectCategory('NotMatched'); });
     document.getElementById('rcvMCardDone').addEventListener('click', function() { selectCategory('done'); });
 
-    // Tab buttons event listeners
     Object.keys(categoryTabs).forEach(function(cat) {
         if (categoryTabs[cat]) {
-            categoryTabs[cat].addEventListener('click', function() {
-                selectCategory(cat);
-            });
+            categoryTabs[cat].addEventListener('click', function() { selectCategory(cat); });
         }
     });
 
-    tabRcvAdd.addEventListener('click', function() {
-        showAddPanel();
-    });
+    tabRcvAdd.addEventListener('click', function() { showAddPanel(); });
 
     function showAddPanel() {
         rcvFeedPanel.style.display = 'none';
@@ -309,10 +401,8 @@
     function selectCategory(cat) {
         if (!CATEGORIES[cat]) return;
         currentCategory = cat;
-
         rcvFeedPanel.style.display = '';
         rcvAddPanel.style.display  = 'none';
-
         Object.keys(categoryTabs).forEach(function(k) {
             var isActive = (k === cat);
             categoryTabs[k].classList.toggle('active', isActive);
@@ -320,65 +410,61 @@
         });
         tabRcvAdd.classList.remove('active');
         tabRcvAdd.setAttribute('aria-selected', 'false');
-
         rcvCategoryHeading.textContent  = CATEGORIES[cat].title;
         rcvCategorySubtitle.textContent = CATEGORIES[cat].subtitle;
-
         loadCategoryRequests(cat);
     }
 
-    // ── Status Badges & Card Template ────────────────────────────────────────
+    // ── Helpers ───────────────────────────────────────────────────────────────
     function statusBadgeHtml(status) {
         var s = (status || 'pending').toLowerCase();
-        var color = '#f97316';
-        var bg = 'rgba(249, 115, 22, 0.12)';
-        var label = 'Pending';
-
-        if (s === 'pending') {
-            color = '#f97316';
-            bg = 'rgba(249, 115, 22, 0.12)';
-            label = 'Pending';
-        } else if (s === 'allocated') {
-            color = '#2563eb';
-            bg = 'rgba(37, 99, 235, 0.12)';
-            label = 'Allocated';
-        } else if (s === 'notmatched' || s === 'not matched') {
-            color = '#dc2626';
-            bg = 'rgba(220, 38, 38, 0.12)';
-            label = 'Not Matched';
-        } else if (s === 'done' || s === 'completed') {
-            color = '#16a34a';
-            bg = 'rgba(22, 163, 74, 0.12)';
-            label = 'Completed';
-        }
-
+        var color = '#f97316', bg = 'rgba(249, 115, 22, 0.12)', label = 'Pending';
+        if (s === 'pending') { color = '#f97316'; bg = 'rgba(249,115,22,0.12)'; label = 'Pending'; }
+        else if (s === 'allocated') { color = '#2563eb'; bg = 'rgba(37,99,235,0.12)'; label = 'Allocated'; }
+        else if (s === 'notmatched' || s === 'not matched') { color = '#dc2626'; bg = 'rgba(220,38,38,0.12)'; label = 'Not Matched'; }
+        else if (s === 'done' || s === 'completed') { color = '#16a34a'; bg = 'rgba(22,163,74,0.12)'; label = 'Completed'; }
+        else if (s === 'cancelled') { color = '#6b7280'; bg = 'rgba(107,114,128,0.12)'; label = 'Cancelled'; }
         return '<span class="status-indicator" style="color:' + color + ';background:' + bg + ';padding:4px 10px;border-radius:999px;font-weight:600;font-size:12px;display:inline-flex;align-items:center;gap:6px;">' +
-               '<span class="status-dot" style="background:' + color + ';width:6px;height:6px;border-radius:50%;display:inline-block;"></span>' +
-               label +
-               '</span>';
+               '<span class="status-dot" style="background:' + color + ';width:6px;height:6px;border-radius:50%;display:inline-block;"></span>' + label + '</span>';
     }
 
     function formatDate(dt) {
         if (!dt) return '';
-        try {
-            return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-        } catch(e) { return dt; }
+        try { return new Date(dt).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+        catch(e) { return dt; }
     }
 
     function escHtml(str) {
-        return String(str || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
+    // ── REQUEST CARD with Edit/Delete buttons ─────────────────────────────────
     function buildRequestCard(food) {
         var loc = [food.perfectLocation, food.city, food.state, food.location].filter(Boolean).join(', ');
         var items = Array.isArray(food.items) ? food.items : [];
         var tags = items.length
             ? items.map(function (t) { return '<span class="food-item-tag">' + escHtml(t) + '</span>'; }).join('')
             : '';
+
+        var s = (food.status || '').toLowerCase();
+        var canEdit   = (s === 'pending' || s === 'notmatched');
+        var canDelete  = (s === 'pending' || s === 'notmatched');
+        var canCancel  = (s === 'allocated');
+        var isLocked   = (s === 'done' || s === 'cancelled');
+
+        var actionBtns = '';
+        if (canEdit) {
+            actionBtns += '<button class="btn-edit-request btn-card-action" data-req-id="' + food.id + '" title="Edit this request" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">&#9998; Edit</button>';
+        }
+        if (canDelete) {
+            actionBtns += '<button class="btn-delete-request btn-card-action" data-req-id="' + food.id + '" data-req-qty="' + (food.quntity||0) + '" title="Delete this request" style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">&#128465; Delete</button>';
+        }
+        if (canCancel) {
+            actionBtns += '<button class="btn-delete-request btn-card-action" data-req-id="' + food.id + '" data-req-qty="' + (food.quntity||0) + '" title="Cancel this request" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">&#9747; Cancel</button>';
+        }
+        if (isLocked) {
+            actionBtns += '<span style="font-size:11px;color:var(--text-muted,#94a3b8);font-style:italic;">&#128274; View only</span>';
+        }
 
         return '<article class="food-card rcv-card">' +
             '<div class="food-card-top">' +
@@ -397,6 +483,7 @@
                     (food.requestDateTime ? 'Required: ' + formatDate(food.requestDateTime) : '') +
                 '</span>' +
             '</div>' +
+            (actionBtns ? '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">' + actionBtns + '</div>' : '') +
         '</article>';
     }
 
@@ -411,65 +498,52 @@
         var donorLoc  = escHtml([food.perfectLocation, food.city, food.state].filter(Boolean).join(', ') || food.location || '—');
         var rcvLoc    = escHtml([need.perfectLocation, need.city, need.state].filter(Boolean).join(', ') || need.location || '—');
 
-        // ── Build delivery status section first ──────────────────────────────
         var delHtml = '';
         if (del) {
             var stepper = buildReceiverStepperHtml(del.status);
             var receiptAction = '';
-
             if (del.status === 'Accepted' || del.status === 'TransporterAssigned') {
-                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:13px;color:#0369a1;font-weight:600;">' +
-                    '&#128666; A transporter has accepted this delivery and will soon collect the food from the donor.' +
-                    '</div>';
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;font-size:13px;color:#0369a1;font-weight:600;">&#128666; A transporter has accepted this delivery and will soon collect the food from the donor.</div>';
             } else if (del.status === 'PickupPending' || del.status === 'PickedUp') {
-                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:13px;color:#c2410c;font-weight:600;">' +
-                    '&#9203; Transporter <strong>' + escHtml(del.transporterName || del.transporterId || '') + '</strong> is collecting/has collected the food from the donor. On the way to you!' +
-                    '</div>';
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:13px;color:#c2410c;font-weight:600;">&#9203; Transporter <strong>' + escHtml(del.transporterName || del.transporterId || '') + '</strong> is collecting/has collected the food from the donor. On the way to you!</div>';
             } else if (del.status === 'InTransit') {
-                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;color:#1e40af;font-weight:600;">' +
-                    '&#128666; Transporter <strong>' + escHtml(del.transporterName || del.transporterId || '') + '</strong> is currently in transit to your location.' +
-                    '</div>';
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;font-size:13px;color:#1e40af;font-weight:600;">&#128666; Transporter <strong>' + escHtml(del.transporterName || del.transporterId || '') + '</strong> is currently in transit to your location.</div>';
             } else if (del.status === 'ReceiverArrived') {
                 receiptAction = '<div class="action-callout-banner banner-receipt">' +
                     '<div class="banner-content">' +
                         '<span class="banner-title">&#127970; Transporter Has Arrived With Food!</span>' +
                         '<span class="banner-desc"><strong>' + escHtml(del.transporterName || del.transporterId || 'Transporter') + '</strong> has arrived at your facility. Please verify and confirm receipt below.</span>' +
                     '</div>' +
-                    '<button class="btn-delivery-action btn-confirm-received" data-del-id="' + del.deliveryId + '">' +
-                        '&#10003; Confirm Food Received' +
-                    '</button>' +
+                    '<button class="btn-delivery-action btn-confirm-received" data-del-id="' + del.deliveryId + '">&#10003; Confirm Food Received</button>' +
                 '</div>';
             } else if (del.status === 'Delivered') {
-                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;font-weight:700;">' +
-                    '&#10003; Delivery Completed &amp; Verified! Food successfully received by your facility.' +
-                    '</div>';
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;font-weight:700;">&#10003; Delivery Completed &amp; Verified! Food successfully received by your facility.</div>';
             } else {
-                // AwaitingTransporter
-                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;font-weight:500;">' +
-                    '&#9203; Waiting for a transporter to accept this delivery job.' +
-                    '</div>';
+                receiptAction = '<div style="margin:12px 0;padding:10px 14px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#64748b;font-weight:500;">&#9203; Waiting for a transporter to accept this delivery job.</div>';
             }
-
             delHtml = '<div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--border-subtle,#e2e8f0);">' +
                 '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
                     '<span style="font-size:12px;font-weight:700;text-transform:uppercase;color:#475569;">Delivery Status: <strong style="color:var(--text-primary,#1e293b);">' + escHtml(del.status) + '</strong></span>' +
                     '<span style="font-size:12px;color:#64748b;">Transporter: <strong>' + escHtml(del.transporterName || del.transporterId || 'Awaiting Partner') + '</strong></span>' +
-                '</div>' +
-                stepper +
-                receiptAction +
-            '</div>';
+                '</div>' + stepper + receiptAction + '</div>';
         }
 
-        // ── Build and return the full card HTML ──────────────────────────────
+        // Cancel button for allocated (if not yet picked up)
+        var cancelBtn = '';
+        var isPickedUpOrBeyond = del &&
+            (del.status === 'PickedUp' || del.status === 'InTransit' || del.status === 'ReceiverArrived' || del.status === 'Delivered');
+        if (need.id && !isPickedUpOrBeyond) {
+            cancelBtn = '<div style="margin-top:12px;">' +
+                '<button class="btn-delete-request btn-card-action" data-req-id="' + need.id + '" data-req-qty="' + (need.quntity||0) + '"' +
+                ' style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">&#9747; Cancel Request</button>' +
+                '</div>';
+        }
+
         return '<article class="match-simple-card">' +
             '<div class="match-simple-header">' +
-                '<div class="match-simple-title">' +
-                    '<strong>Allocated Match</strong>' +
-                    '<span class="match-route-tag">' + donorCity + ' &rarr; ' + rcvCity + '</span>' +
-                '</div>' +
+                '<div class="match-simple-title"><strong>Allocated Match</strong><span class="match-route-tag">' + donorCity + ' &rarr; ' + rcvCity + '</span></div>' +
                 '<span class="match-badge-simple">Allocated</span>' +
             '</div>' +
-
             '<div class="match-simple-body">' +
                 '<div class="match-col">' +
                     '<div class="match-col-role role-donor">&#127869; DONOR</div>' +
@@ -481,13 +555,7 @@
                         (food.donationDateTime ? '<div class="col-info-item"><span class="icon">&#128197;</span> ' + formatDate(food.donationDateTime) + '</div>' : '') +
                     '</div>' +
                 '</div>' +
-
-                '<div class="match-connector">' +
-                    '<div class="connector-line"></div>' +
-                    '<div class="connector-icon-circle">&#8646;</div>' +
-                    '<div class="connector-label">MATCHED</div>' +
-                '</div>' +
-
+                '<div class="match-connector"><div class="connector-line"></div><div class="connector-icon-circle">&#8646;</div><div class="connector-label">MATCHED</div></div>' +
                 '<div class="match-col">' +
                     '<div class="match-col-role role-receiver">&#127970; YOUR FACILITY</div>' +
                     '<h4 class="col-food-title">' + escHtml(need.foodName || 'Your Requirement') + '</h4>' +
@@ -499,9 +567,7 @@
                     '</div>' +
                 '</div>' +
             '</div>' +
-
-            delHtml +
-
+            delHtml + cancelBtn +
             '<div class="match-simple-footer">' +
                 '<div>Pickup: <strong>' + donorLoc + '</strong> &rarr; Delivery: <strong>' + rcvLoc + '</strong></div>' +
                 (food.emailID ? '<a href="mailto:' + escHtml(food.emailID) + '?subject=FoodBridge%20Allocation%20Handover">&#9993; Coordinate with Donor</a>' : '') +
@@ -518,28 +584,19 @@
                 { key: 'ReceiverArrived', label: 'Arrived' },
                 { key: 'Delivered', label: 'Received' }
             ];
-
             var stepOrder = ['AwaitingTransporter', 'Accepted', 'PickupPending', 'PickedUp', 'InTransit', 'ReceiverArrived', 'Delivered'];
             var currentIdx = stepOrder.indexOf(status);
             if (currentIdx === -1 && (status === 'TransporterAssigned')) currentIdx = 1;
-
             var html = '<div class="delivery-stepper" style="margin: 14px 0 8px 0;">';
             var pct = Math.max(0, Math.min(100, (currentIdx / (stepOrder.length - 1)) * 100));
             html += `<div class="stepper-progress-line" style="width:${pct}%;"></div>`;
-
             steps.forEach(function (s, idx) {
                 var stepIndex = stepOrder.indexOf(s.key);
                 if (s.key === 'Matched') stepIndex = 0;
                 var isDone = currentIdx >= stepIndex;
                 var isCurr = currentIdx === stepIndex;
                 var cls = isDone ? 'is-done' : (isCurr ? 'is-current' : '');
-
-                html += `
-                    <div class="stepper-step ${cls}">
-                        <div class="stepper-dot">${isDone ? '&#10003;' : (idx + 1)}</div>
-                        <span class="stepper-step-title">${s.label}</span>
-                    </div>
-                `;
+                html += `<div class="stepper-step ${cls}"><div class="stepper-dot">${isDone ? '&#10003;' : (idx + 1)}</div><span class="stepper-step-title">${s.label}</span></div>`;
             });
             html += '</div>';
             return html;
@@ -550,28 +607,22 @@
             rcvLoading.style.display = '';
             rcvError.style.display   = 'none';
             rcvFoodGrid.innerHTML    = '';
-
             var config = CATEGORIES[cat];
             if (!config) return;
-
             try {
                 var [resp, delResp] = await Promise.all([
                     window.FoodBridge.authFetch(config.url),
                     window.FoodBridge.authFetch('/Receiver/deliveries')
                 ]);
-
                 if (resp.status === 401 || resp.status === 403 || delResp.status === 401) {
                     window.location.replace('/Home/Login'); return;
                 }
-                if (!resp.ok) {
-                    throw new Error('Server returned ' + resp.status);
-                }
+                if (!resp.ok) throw new Error('Server returned ' + resp.status);
 
                 var data = await resp.json();
                 var deliveries = delResp.ok ? await delResp.json() : [];
                 rcvLoading.style.display = 'none';
 
-                // Update badge and metric for this category
                 var count = Array.isArray(data) ? data.length : 0;
                 if (badges[cat]) badges[cat].textContent = count;
                 if (metricEls[cat]) metricEls[cat].textContent = count;
@@ -579,11 +630,8 @@
                 if (!Array.isArray(data) || data.length === 0) {
                     rcvFoodGrid.classList.remove('allocation-feed-layout');
                     rcvFoodGrid.innerHTML =
-                        '<div class="empty-state">' +
-                        '<span class="empty-icon" aria-hidden="true">&#127860;</span>' +
-                        '<h4>' + escHtml(config.emptyText) + '</h4>' +
-                        '<p>' + escHtml(config.emptyDesc) + '</p>' +
-                        '</div>';
+                        '<div class="empty-state"><span class="empty-icon" aria-hidden="true">&#127860;</span>' +
+                        '<h4>' + escHtml(config.emptyText) + '</h4><p>' + escHtml(config.emptyDesc) + '</p></div>';
                     return;
                 }
 
@@ -591,9 +639,11 @@
                     rcvFoodGrid.classList.add('allocation-feed-layout');
                     rcvFoodGrid.innerHTML = data.map(function(item) {
                         if (item.food && item.neededFood) {
-                            // Match delivery using receiverId (camelCase JSON) or foodId
+                            // ── STRICT match by foodId (which maps 1:1 to this specific allocation).
+                            // Never fall back to receiverId — a receiver can have multiple concurrent
+                            // allocations and the receiverId fallback would pick the wrong delivery.
                             var del = deliveries.find(function (d) {
-                                return (item.neededFood && d.receiverId === item.neededFood.emailID) || (item.food && d.foodId === item.food.id);
+                                return item.food && d.foodId === item.food.id;
                             }) || null;
                             item.delivery = del;
                             return buildMatchedConnectionCard(item);
@@ -606,11 +656,9 @@
                         btn.addEventListener('click', async function() {
                             var delId = btn.getAttribute('data-del-id');
                             if (!delId) return;
-
                             var notes = prompt('Add optional delivery receipt notes (or press OK to confirm):') || '';
                             btn.disabled = true;
                             btn.innerHTML = 'Confirming receipt… <span class="spinner-dot" aria-hidden="true"></span>';
-
                             try {
                                 var cResp = await window.FoodBridge.authFetch('/Receiver/deliveries/' + delId + '/confirm-received', {
                                     method: 'POST',
@@ -618,18 +666,15 @@
                                     body: JSON.stringify({ Notes: notes })
                                 });
                                 var resJson = await cResp.json().catch(function() { return {}; });
-
                                 if (!cResp.ok) {
                                     alert(resJson.message || 'Failed to confirm receipt.');
                                     btn.disabled = false;
                                     btn.innerHTML = '&#10003; Confirm Food Received';
                                     return;
                                 }
-
-                                alert('Food delivery receipt confirmed successfully! Thank you.');
+                                showToast('&#127881; Food delivery receipt confirmed! Thank you.', 'success');
                                 loadCategoryRequests(currentCategory);
                                 refreshAllCounts();
-
                             } catch (cErr) {
                                 alert('Network error: ' + cErr.message);
                                 btn.disabled = false;
@@ -642,6 +687,20 @@
                     rcvFoodGrid.classList.remove('allocation-feed-layout');
                     rcvFoodGrid.innerHTML = data.map(buildRequestCard).join('');
                 }
+
+                // ── Bind Edit buttons ──────────────────────────────────────────
+                rcvFoodGrid.querySelectorAll('.btn-edit-request').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        openEditRequestModal(btn.getAttribute('data-req-id'));
+                    });
+                });
+
+                // ── Bind Delete/Cancel buttons ─────────────────────────────────
+                rcvFoodGrid.querySelectorAll('.btn-delete-request').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        openDeleteRequestModal(btn.getAttribute('data-req-id'), btn.getAttribute('data-req-qty'));
+                    });
+                });
 
             } catch (err) {
                 rcvLoading.style.display = 'none';
@@ -665,7 +724,7 @@
         return Promise.all(promises);
     }
 
-    // ── Toast Notification System ─────────────────────────────────────────────
+    // ── Toast ─────────────────────────────────────────────────────────────────
     function showToast(message, type) {
         var toastId = 'rcvToastContainer';
         var container = document.getElementById(toastId);
@@ -676,8 +735,8 @@
             document.body.appendChild(container);
         }
         var toast = document.createElement('div');
-        var bgColor = type === 'success' ? '#166534' : type === 'warning' ? '#92400e' : '#1e40af';
-        var icon    = type === 'success' ? '&#10003;' : type === 'warning' ? '&#9888;' : '&#128666;';
+        var bgColor = type === 'success' ? '#166534' : type === 'error' ? '#991b1b' : type === 'warning' ? '#92400e' : '#1e40af';
+        var icon    = type === 'success' ? '&#10003;' : type === 'error' ? '&#9888;' : type === 'warning' ? '&#9888;' : '&#128666;';
         toast.style.cssText = 'background:' + bgColor + ';color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 4px 24px rgba(0,0,0,0.18);display:flex;align-items:center;gap:10px;min-width:280px;max-width:400px;';
         toast.innerHTML = '<span style="font-size:18px;">' + icon + '</span><span>' + message + '</span>';
         container.appendChild(toast);
@@ -688,7 +747,185 @@
         }, 5000);
     }
 
-    // ── Auto-Polling for delivery status changes ──────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // EDIT REQUEST MODAL LOGIC
+    // ══════════════════════════════════════════════════════════════════════════
+    var editReqModal   = document.getElementById('editRequestModal');
+    var editReqForm    = document.getElementById('editRequestForm');
+    var editReqMsg     = document.getElementById('editRequestMessage');
+    var saveEditReqBtn = document.getElementById('saveEditRequestBtn');
+
+    function openEditRequestModal(reqId) {
+        editReqMsg.textContent = '';
+        editReqMsg.className   = 'form-message mb-3';
+        window.FoodBridge.authFetch('/NGOs/' + reqId)
+            .then(function(r) {
+                if (r.status === 403) { showToast('&#9888; This request does not belong to you.', 'error'); return null; }
+                if (!r.ok) { showToast('&#9888; Could not load request data.', 'error'); return null; }
+                return r.json();
+            })
+            .then(function(req) {
+                if (!req) return;
+                document.getElementById('editRequestId').value  = req.id;
+                document.getElementById('editReqQty').value     = req.quntity || '';
+                document.getElementById('editReqCity').value    = req.city || '';
+                document.getElementById('editReqState').value   = req.state || '';
+                document.getElementById('editReqLocation').value = req.perfectLocation || '';
+                if (req.requestDateTime) {
+                    try {
+                        var d = new Date(req.requestDateTime);
+                        var pad = function(n) { return String(n).padStart(2, '0'); };
+                        document.getElementById('editReqDate').value =
+                            d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) +
+                            'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+                    } catch(e) { document.getElementById('editReqDate').value = ''; }
+                } else {
+                    document.getElementById('editReqDate').value = '';
+                }
+                var s = (req.status || '').toLowerCase();
+                var qtyInput = document.getElementById('editReqQty');
+                var qtyNote  = document.getElementById('editReqQtyNote');
+                if (s === 'allocated') {
+                    qtyInput.disabled = true;
+                    qtyInput.style.opacity = '0.5';
+                    qtyNote.textContent = 'Quantity is locked — this request is already allocated.';
+                } else {
+                    qtyInput.disabled = false;
+                    qtyInput.style.opacity = '';
+                    qtyNote.textContent = '';
+                }
+                editReqModal.style.display = 'block';
+                document.getElementById('editReqQty').focus();
+            })
+            .catch(function() { showToast('&#9888; Network error loading request data.', 'error'); });
+    }
+
+    function closeEditRequestModal() {
+        editReqModal.style.display = 'none';
+        document.getElementById('editReqQty').disabled = false;
+        document.getElementById('editReqQty').style.opacity = '';
+    }
+
+    document.getElementById('closeEditRequestModalBtn').addEventListener('click', closeEditRequestModal);
+    document.getElementById('cancelEditRequestBtn').addEventListener('click', closeEditRequestModal);
+    editReqModal.addEventListener('click', function(e) { if (e.target === editReqModal) closeEditRequestModal(); });
+
+    editReqForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        editReqMsg.textContent = '';
+        editReqMsg.className   = 'form-message mb-3';
+
+        var reqId   = document.getElementById('editRequestId').value;
+        var qtyRaw  = document.getElementById('editReqQty').value;
+        var city    = document.getElementById('editReqCity').value.trim();
+        var state   = document.getElementById('editReqState').value.trim();
+        var perfLoc = document.getElementById('editReqLocation').value.trim();
+        var dateVal = document.getElementById('editReqDate').value;
+        var qtyDisabled = document.getElementById('editReqQty').disabled;
+        var qty = qtyDisabled ? null : (qtyRaw ? parseInt(qtyRaw, 10) : null);
+
+        if (!qtyDisabled && qty !== null && (isNaN(qty) || qty < 1)) {
+            editReqMsg.textContent = 'Quantity must be a positive number greater than 0.';
+            editReqMsg.className   = 'form-message mb-3 is-error';
+            return;
+        }
+
+        var payload = {};
+        if (qty !== null) payload.quntity = qty;
+        if (city) payload.city = city;
+        if (state) payload.state = state;
+        if (perfLoc) payload.perfectLocation = perfLoc;
+        if (dateVal) payload.requestDateTime = window.FoodBridge.toLocalDateTimeString(dateVal);
+
+        saveEditReqBtn.disabled = true;
+        saveEditReqBtn.innerHTML = 'Saving… <span class="spinner-dot" aria-hidden="true"></span>';
+
+        try {
+            var resp = await window.FoodBridge.authFetch('/NGOs/' + reqId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            var resJson = await resp.json().catch(function() { return {}; });
+            if (resp.status === 403) {
+                editReqMsg.textContent = 'Forbidden: You can only edit your own food requests.';
+                editReqMsg.className   = 'form-message mb-3 is-error';
+                return;
+            }
+            if (!resp.ok) {
+                editReqMsg.textContent = resJson.message || 'Failed to update food request.';
+                editReqMsg.className   = 'form-message mb-3 is-error';
+                return;
+            }
+            showToast('&#10003; Food request updated successfully!', 'success');
+            closeEditRequestModal();
+            loadCategoryRequests(currentCategory);
+            refreshAllCounts();
+        } catch(err) {
+            editReqMsg.textContent = 'Network error: ' + (err.message || 'Please check your connection.');
+            editReqMsg.className   = 'form-message mb-3 is-error';
+        } finally {
+            saveEditReqBtn.disabled = false;
+            saveEditReqBtn.innerHTML = '<span>Save Changes</span> <span aria-hidden="true">&rarr;</span>';
+        }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // DELETE REQUEST MODAL LOGIC
+    // ══════════════════════════════════════════════════════════════════════════
+    var deleteReqModal   = document.getElementById('deleteRequestModal');
+    var deleteReqMsgEl   = document.getElementById('deleteRequestModalMsg');
+    var confirmDelReqBtn = document.getElementById('confirmDeleteRequestBtn');
+    var cancelDelReqBtn  = document.getElementById('cancelDeleteRequestBtn');
+
+    function openDeleteRequestModal(reqId, qty) {
+        document.getElementById('deleteRequestId').value = reqId;
+        document.getElementById('deleteRequestModalDesc').textContent =
+            'Are you sure you want to delete/cancel this food request (' + (qty||'?') + ' servings)? This action cannot be undone.';
+        deleteReqMsgEl.textContent = '';
+        deleteReqMsgEl.className   = 'form-message mb-3';
+        deleteReqModal.style.display = 'flex';
+    }
+
+    function closeDeleteRequestModal() { deleteReqModal.style.display = 'none'; }
+
+    cancelDelReqBtn.addEventListener('click', closeDeleteRequestModal);
+    deleteReqModal.addEventListener('click', function(e) { if (e.target === deleteReqModal) closeDeleteRequestModal(); });
+
+    confirmDelReqBtn.addEventListener('click', async function() {
+        var reqId = document.getElementById('deleteRequestId').value;
+        if (!reqId) return;
+        deleteReqMsgEl.textContent = '';
+        deleteReqMsgEl.className   = 'form-message mb-3';
+        confirmDelReqBtn.disabled  = true;
+        confirmDelReqBtn.innerHTML = 'Deleting… <span class="spinner-dot" aria-hidden="true"></span>';
+        try {
+            var resp = await window.FoodBridge.authFetch('/NGOs/' + reqId, { method: 'DELETE' });
+            var resJson = await resp.json().catch(function() { return {}; });
+            if (resp.status === 403) {
+                deleteReqMsgEl.textContent = 'Forbidden: You can only delete your own food requests.';
+                deleteReqMsgEl.className   = 'form-message mb-3 is-error';
+                return;
+            }
+            if (!resp.ok) {
+                deleteReqMsgEl.textContent = resJson.message || 'Failed to delete food request.';
+                deleteReqMsgEl.className   = 'form-message mb-3 is-error';
+                return;
+            }
+            showToast('&#128465; Food request deleted/cancelled successfully.', 'success');
+            closeDeleteRequestModal();
+            loadCategoryRequests(currentCategory);
+            refreshAllCounts();
+        } catch(err) {
+            deleteReqMsgEl.textContent = 'Network error: ' + (err.message || 'Please check your connection.');
+            deleteReqMsgEl.className   = 'form-message mb-3 is-error';
+        } finally {
+            confirmDelReqBtn.disabled  = false;
+            confirmDelReqBtn.innerHTML = '&#128465; Delete';
+        }
+    });
+
+    // ── Auto-Polling ──────────────────────────────────────────────────────────
     var _lastDeliveryStatuses = {};
     var _rcvAutoRefreshTimer = null;
 
@@ -704,23 +941,16 @@
                     var prevStatus = _lastDeliveryStatuses[d.deliveryId];
                     if (prevStatus !== undefined && prevStatus !== d.status) {
                         changed = true;
-                        if (d.status === 'Accepted') {
-                            showToast('&#128666; A transporter accepted the delivery for your food request!', 'info');
-                        } else if (d.status === 'InTransit') {
-                            showToast('&#128666; Your food is in transit! Transporter ' + (d.transporterName || '') + ' is on the way.', 'info');
-                        } else if (d.status === 'ReceiverArrived') {
-                            showToast('&#127970; Transporter has arrived at your location! Please confirm food receipt.', 'warning');
-                        } else if (d.status === 'Delivered') {
-                            showToast('&#127881; Food delivery completed and verified! Thank you.', 'success');
-                        }
+                        if (d.status === 'Accepted') showToast('&#128666; A transporter accepted the delivery for your food request!', 'info');
+                        else if (d.status === 'InTransit') showToast('&#128666; Your food is in transit! Transporter ' + (d.transporterName || '') + ' is on the way.', 'info');
+                        else if (d.status === 'ReceiverArrived') showToast('&#127970; Transporter has arrived at your location! Please confirm food receipt.', 'warning');
+                        else if (d.status === 'Delivered') showToast('&#127881; Food delivery completed and verified! Thank you.', 'success');
+                        else if (d.status === 'Cancelled') showToast('&#9888; A delivery was cancelled.', 'warning');
                     }
                     _lastDeliveryStatuses[d.deliveryId] = d.status;
                 });
-                if (changed && currentCategory === 'Allocated') {
-                    loadCategoryRequests('Allocated');
-                } else if (changed) {
-                    refreshAllCounts();
-                }
+                if (changed && currentCategory === 'Allocated') loadCategoryRequests('Allocated');
+                else if (changed) refreshAllCounts();
             } catch(e) { }
         }, 10000);
     }
@@ -799,7 +1029,6 @@
                     showMsg('Food request submitted successfully! Viewing your pending requests…', false);
                     addForm.reset();
                     if (emailInput && email) emailInput.value = email;
-
                     setTimeout(function () {
                         selectCategory('pending');
                         refreshAllCounts();

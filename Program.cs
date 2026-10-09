@@ -17,6 +17,8 @@ public class Program
         builder.Services.AddScoped<MatchFoodRequirement>();
         builder.Services.AddScoped<wastfood>();
         builder.Services.AddScoped<DeliveryService>();
+        builder.Services.AddScoped<IDistanceService, DistanceService>();
+        builder.Services.AddScoped<TransporterMatchingService>();
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

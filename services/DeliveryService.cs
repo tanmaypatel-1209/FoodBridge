@@ -18,14 +18,138 @@ namespace FoodBridge.services
             _context = context;
         }
 
-        public async Task<List<DeliveryJobDTO>> GetAvailableDeliveriesAsync()
+        public static string NormalizeCity(string? city)
         {
+            if (string.IsNullOrWhiteSpace(city)) return string.Empty;
+            var trimmed = city.Trim().ToLowerInvariant();
+            var firstPart = trimmed.Split(',')[0].Trim();
+            return firstPart;
+        }
+
+        public async Task<FoodDelivery?> CreateDeliveryForMatchAsync(MatchedFood match)
+        {
+            if (match == null) return null;
+
+            var existing = await _context.FoodDeliveries
+                .FirstOrDefaultAsync(d => d.MatchedFoodId == match.id);
+
+            if (existing != null)
+            {
+                Console.WriteLine($"[DIAGNOSTIC] FoodDelivery already exists for MatchId {match.id} (DeliveryId: {existing.Id}, Status: {existing.Status})");
+                return existing;
+            }
+
+            Console.WriteLine($"[DIAGNOSTIC] FoodDelivery creation started for MatchId: {match.id}, Donor: {match.DonorId}, Receiver: {match.ReceiverId}");
+
+            var delivery = new FoodDelivery(match.id, match.DonorId, match.ReceiverId)
+            {
+                Status = "AwaitingTransporter",
+                CreatedAt = match.donationDateTime ?? DateTime.UtcNow
+            };
+
+            _context.FoodDeliveries.Add(delivery);
+            await _context.SaveChangesAsync();
+
+            int matchedQty = match.Neededquntity > 0 && match.Providedquntity > 0
+                ? Math.Min(match.Providedquntity, match.Neededquntity)
+                : (match.Neededquntity > 0 ? match.Neededquntity : match.Providedquntity);
+
+            _context.DeliveryStatusHistories.Add(new DeliveryStatusHistory(
+                delivery.Id,
+                "Allocated",
+                "AwaitingTransporter",
+                "System",
+                "System",
+                $"Food matched and allocated ({matchedQty} servings). Delivery created and ready for transporter acceptance."
+            ));
+
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine($"[DIAGNOSTIC] FoodDelivery created -> ID: {delivery.Id}, Status: {delivery.Status}, DonorId: {delivery.DonorId}, ReceiverId: {delivery.ReceiverId}, Quantity: {matchedQty}");
+
+            return delivery;
+        }
+
+        public async Task EnsureDeliveriesForAllocatedMatchesAsync()
+        {
+            var matches = await _context.MatchedFoods.ToListAsync();
+            if (!matches.Any()) return;
+
+            var existingMatchIds = await _context.FoodDeliveries
+                .Select(d => d.MatchedFoodId)
+                .Distinct()
+                .ToListAsync();
+
+            var existingMatchSet = new HashSet<int>(existingMatchIds);
+
+            foreach (var match in matches)
+            {
+                if (existingMatchSet.Contains(match.id)) continue;
+
+                var food = await _context.Foods.FirstOrDefaultAsync(f => f.id == match.FID);
+                var needed = await _context.NeededFoods.FirstOrDefaultAsync(n => n.id == match.NFID);
+
+                // If neither is done or cancelled
+                if (food?.status != "done" && food?.status != "cancelled" &&
+                    needed?.status != "done" && needed?.status != "cancelled")
+                {
+                    if (food != null && food.status == "NotMatched")
+                    {
+                        food.status = "Allocated";
+                    }
+                    if (needed != null && needed.status == "NotMatched")
+                    {
+                        needed.status = "Allocated";
+                    }
+                    await _context.SaveChangesAsync();
+
+                    await CreateDeliveryForMatchAsync(match);
+                    existingMatchSet.Add(match.id);
+                }
+            }
+        }
+
+        public async Task<List<DeliveryJobDTO>> GetAvailableDeliveriesAsync(string? city = null, string? transporterEmail = null)
+        {
+            Console.WriteLine($"[DIAGNOSTIC] Transporter query for available deliveries. City filter: '{city}', Transporter: '{transporterEmail}'");
+
+            await EnsureDeliveriesForAllocatedMatchesAsync();
+
             var deliveries = await _context.FoodDeliveries
                 .Where(d => d.Status == "AwaitingTransporter" && string.IsNullOrEmpty(d.TransporterId))
                 .OrderByDescending(d => d.CreatedAt)
                 .ToListAsync();
 
-            return await HydrateDeliveriesAsync(deliveries);
+            var dtos = await HydrateDeliveriesAsync(deliveries);
+
+            if (!string.IsNullOrWhiteSpace(city))
+            {
+                var normCity = NormalizeCity(city);
+                var beforeCount = dtos.Count;
+                dtos = dtos.Where(d =>
+                    NormalizeCity(d.PickupCity) == normCity ||
+                    NormalizeCity(d.DeliveryCity) == normCity ||
+                    NormalizeCity(d.PickupLocation).Contains(normCity) ||
+                    NormalizeCity(d.DeliveryLocation).Contains(normCity)
+                ).ToList();
+                Console.WriteLine($"[DIAGNOSTIC] Filtered by city '{normCity}': {beforeCount} -> {dtos.Count}");
+            }
+            else if (!string.IsNullOrWhiteSpace(transporterEmail))
+            {
+                var transporter = await _context.Users.FindAsync(transporterEmail);
+                var transporterCityNorm = NormalizeCity(transporter?.city);
+                if (!string.IsNullOrEmpty(transporterCityNorm))
+                {
+                    dtos = dtos
+                        .OrderByDescending(d => NormalizeCity(d.PickupCity) == transporterCityNorm || NormalizeCity(d.DeliveryCity) == transporterCityNorm)
+                        .ThenByDescending(d => d.CreatedAt)
+                        .ToList();
+                }
+            }
+
+            Console.WriteLine($"[DIAGNOSTIC] Available deliveries returned: {dtos.Count}");
+
+            return dtos;
         }
 
         public async Task<List<DeliveryJobDTO>> GetTransporterDeliveriesAsync(string transporterEmail)
@@ -82,7 +206,7 @@ namespace FoodBridge.services
             // Concurrency guard: double-check current state
             if (delivery.Status != "AwaitingTransporter" || !string.IsNullOrEmpty(delivery.TransporterId))
             {
-                return (false, "This delivery has already been assigned to another transporter.", null);
+                return (false, "This delivery has already been accepted by another transporter.", null);
             }
 
             var transporter = await _context.Users.FindAsync(transporterEmail);
@@ -96,6 +220,8 @@ namespace FoodBridge.services
             delivery.Status = "Accepted";
             delivery.AssignedAt = DateTime.UtcNow;
             delivery.AcceptedAt = DateTime.UtcNow;
+
+            transporter.AvailabilityStatus = "Busy";
 
             _context.DeliveryStatusHistories.Add(new DeliveryStatusHistory(
                 delivery.Id,
@@ -317,6 +443,24 @@ namespace FoodBridge.services
                 $"Receiver confirmed safe arrival and receipt of food donation. {(string.IsNullOrWhiteSpace(notes) ? "" : "Notes: " + notes)}"
             ));
 
+            // Check if transporter has any other active deliveries
+            if (!string.IsNullOrEmpty(delivery.TransporterId))
+            {
+                var otherActive = await _context.FoodDeliveries.AnyAsync(d =>
+                    d.Id != delivery.Id &&
+                    d.TransporterId == delivery.TransporterId &&
+                    d.Status != "Delivered" && d.Status != "Cancelled");
+
+                if (!otherActive)
+                {
+                    var transporter = await _context.Users.FindAsync(delivery.TransporterId);
+                    if (transporter != null && transporter.AvailabilityStatus == "Busy")
+                    {
+                        transporter.AvailabilityStatus = "Available";
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             var dto = await GetDeliveryByIdAsync(delivery.Id);
@@ -390,17 +534,25 @@ namespace FoodBridge.services
                     PickupLocation = food?.perfectLocation ?? food?.location ?? match?.fromperfectLocation ?? "Donor Location",
                     PickupCity = food?.city ?? match?.city ?? donorUser?.city ?? "",
                     PickupState = food?.state ?? match?.state ?? "",
+                    PickupLatitude = food?.PickupLatitude,
+                    PickupLongitude = food?.PickupLongitude,
 
                     ReceiverId = d.ReceiverId,
                     ReceiverName = receiverUser?.Username ?? d.ReceiverId,
                     DeliveryLocation = neededFood?.perfectLocation ?? neededFood?.location ?? match?.toperfectLocation ?? "Receiver Location",
                     DeliveryCity = neededFood?.city ?? receiverUser?.city ?? match?.city ?? "",
                     DeliveryState = neededFood?.state ?? match?.state ?? "",
+                    DeliveryLatitude = neededFood?.DeliveryLatitude,
+                    DeliveryLongitude = neededFood?.DeliveryLongitude,
 
                     FoodId = food?.id ?? match?.FID ?? 0,
                     FoodName = food?.FoodName ?? "Food Donation",
                     Items = food?.items ?? Array.Empty<string>(),
-                    Quantity = match?.Providedquntity ?? food?.quntity ?? neededFood?.quntity ?? 0,
+                    Quantity = match != null
+                        ? (match.Neededquntity > 0 && match.Providedquntity > 0
+                            ? Math.Min(match.Providedquntity, match.Neededquntity)
+                            : (match.Neededquntity > 0 ? match.Neededquntity : match.Providedquntity))
+                        : (food?.quntity ?? neededFood?.quntity ?? 0),
                     DonationDateTime = food?.donationDateTime ?? match?.donationDateTime,
                     RequestDateTime = neededFood?.requestDateTime ?? match?.requestDateTime,
 

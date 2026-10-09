@@ -14,6 +14,10 @@ public class NeededFoodDTO
     public string? state { get; set; }
     public string? perfectLocation { get; set; }
 
+    // Optional: geographic coordinates for distance-based Transporter matching
+    public double? DeliveryLatitude { get; set; }
+    public double? DeliveryLongitude { get; set; }
+
     public NeededFoodDTO()
     {
     }

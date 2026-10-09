@@ -27,7 +27,7 @@ public class wastfood
         if (role == "Donor")
         {
             var foods = await context.Foods
-                .Where(x => x.emailID == email && (x.status == "pending" || x.status == "Allocated"))
+                .Where(x => x.emailID == email && x.status == "pending")
                 .ToListAsync();
 
             foreach (Food food in foods)
@@ -41,7 +41,7 @@ public class wastfood
         else if (role == "NGOs")
         {
             var foods = await context.NeededFoods
-                .Where(x => x.emailID == email && (x.status == "pending" || x.status == "Allocated"))
+                .Where(x => x.emailID == email && x.status == "pending")
                 .ToListAsync();
 
             foreach (NeededFood food in foods)

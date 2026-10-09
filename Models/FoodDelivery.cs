@@ -37,6 +37,21 @@ namespace FoodBridge.Models
         [Required]
         public string Status { get; set; } = "AwaitingTransporter";
 
+        [NotMapped]
+        public int Quantity
+        {
+            get
+            {
+                if (MatchedFood != null)
+                {
+                    return MatchedFood.Neededquntity > 0 && MatchedFood.Providedquntity > 0
+                        ? Math.Min(MatchedFood.Providedquntity, MatchedFood.Neededquntity)
+                        : (MatchedFood.Neededquntity > 0 ? MatchedFood.Neededquntity : MatchedFood.Providedquntity);
+                }
+                return 0;
+            }
+        }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? AssignedAt { get; set; }
         public DateTime? AcceptedAt { get; set; }

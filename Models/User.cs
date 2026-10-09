@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace FoodBridge.Models
@@ -10,6 +11,23 @@ namespace FoodBridge.Models
         [Required] public string password { get; set; }
         [Required] public string role { get; set; }
         [Required] public string city { get; set; }
+
+        // Transporter location fields
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
+        /// <summary>
+        /// Transporter availability status: Available | Busy | Offline
+        /// </summary>
+        public string AvailabilityStatus { get; set; } = "Offline";
+
+        public DateTime? LastLocationUpdatedAt { get; set; }
+
+        // Contact & Profile fields
+        public string? PhoneNumber { get; set; }
+        public string? Address { get; set; }
+        public string? State { get; set; }
+        public string? Pincode { get; set; }
 
         public User()
         {
